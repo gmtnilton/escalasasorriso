@@ -396,3 +396,45 @@ document.addEventListener('DOMContentLoaded', async function() {
   </script>
 </body>
 </html>
+<script>
+(function () {
+  function ensurePwaTags() {
+    if (!document.querySelector('link[rel="manifest"]')) {
+      var link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = 'manifest.json';
+      document.head.appendChild(link);
+    }
+    if (!document.querySelector('meta[name="theme-color"]')) {
+      var meta = document.createElement('meta');
+      meta.name = 'theme-color';
+      meta.content = '#0c2a1c';
+      document.head.appendChild(meta);
+    }
+    if (!document.querySelector('link[rel="apple-touch-icon"]')) {
+      var icon = document.createElement('link');
+      icon.rel = 'apple-touch-icon';
+      icon.href = 'icons/icon-192.png';
+      document.head.appendChild(icon);
+    }
+    if (!document.title) { document.title = 'Sumula App'; }
+  }
+  ensurePwaTags();
+  var debounce;
+  var pwaObserver = new MutationObserver(function () {
+    clearTimeout(debounce);
+    debounce = setTimeout(ensurePwaTags, 400);
+  });
+  pwaObserver.observe(document.head, { childList: true, subtree: true });
+  window.addEventListener('load', function () {
+    ensurePwaTags();
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').catch(function () {});
+    }
+    setTimeout(function () {
+      ensurePwaTags();
+      pwaObserver.disconnect();
+    }, 6000);
+  });
+})();
+</script>
