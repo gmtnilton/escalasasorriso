@@ -43,7 +43,11 @@ fun JogosListScreen(
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(
+                start = 16.dp, end = 16.dp,
+                top = contentPadding.calculateTopPadding() + 16.dp,
+                bottom = 8.dp,
+            ),
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
         ) {
             Text(

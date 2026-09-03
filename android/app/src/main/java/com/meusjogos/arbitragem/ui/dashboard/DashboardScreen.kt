@@ -34,7 +34,8 @@ fun DashboardScreen(
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(
-            start = 16.dp, end = 16.dp, top = 16.dp,
+            start = 16.dp, end = 16.dp,
+            top = contentPadding.calculateTopPadding() + 16.dp,
             bottom = contentPadding.calculateBottomPadding() + 96.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
