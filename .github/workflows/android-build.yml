@@ -5,7 +5,7 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -46,3 +46,21 @@ jobs:
           name: core-test-report
           path: android/core/build/reports/tests/test
           if-no-files-found: ignore
+
+      - name: Publish APK to a stable Release (always up to date)
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-debug-latest
+          name: "Meus Jogos de Arbitragem — build de debug"
+          body: |
+            APK de debug gerado automaticamente pelo CI a partir do commit
+            ${{ github.sha }} (branch `${{ github.ref_name }}`).
+
+            Baixe o `.apk` abaixo e instale direto no celular (Android 8.0+).
+            Este release é atualizado a cada novo push que compila com sucesso.
+          files: android/app/build/outputs/apk/debug/*.apk
+          prerelease: true
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
