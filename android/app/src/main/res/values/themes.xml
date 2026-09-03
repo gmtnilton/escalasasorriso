@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+       Tema base "casca" da Activity — a UI real é toda desenhada em Jetpack
+       Compose (ver ui/theme/Theme.kt). Isso só define a cor de fundo da
+       janela antes do primeiro frame do Compose e evita a ActionBar padrão.
+    -->
+    <style name="Theme.MeusJogosArbitragem" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/windowBackground</item>
+        <item name="android:statusBarColor">@color/ic_launcher_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

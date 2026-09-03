@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bola de futebol simplificada (pentágono central + malha), dentro da
+     área segura do ícone adaptativo. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:pathData="M54,24 A30,30 0 1,1 53.99,24"
+        android:strokeColor="#F5F1E6"
+        android:strokeWidth="3.4"
+        android:fillColor="#00000000" />
+
+    <path
+        android:pathData="M54,44 L63.51,50.91 L59.88,62.09 L48.12,62.09 L44.49,50.91 Z"
+        android:fillColor="#F5F1E6" />
+
+    <path android:pathData="M54,24 L54,44" android:strokeColor="#F5F1E6" android:strokeWidth="2.6" />
+    <path android:pathData="M82.53,44.73 L63.51,50.91" android:strokeColor="#F5F1E6" android:strokeWidth="2.6" />
+    <path android:pathData="M71.63,78.27 L59.88,62.09" android:strokeColor="#F5F1E6" android:strokeWidth="2.6" />
+    <path android:pathData="M36.37,78.27 L48.12,62.09" android:strokeColor="#F5F1E6" android:strokeWidth="2.6" />
+    <path android:pathData="M25.47,44.73 L44.49,50.91" android:strokeColor="#F5F1E6" android:strokeWidth="2.6" />
+</vector>

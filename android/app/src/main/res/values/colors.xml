@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Verde campo — cor de fundo do ícone adaptativo do app. -->
+    <color name="ic_launcher_background">#0F3D2E</color>
+    <color name="windowBackground">#FAF9F5</color>
+</resources>
