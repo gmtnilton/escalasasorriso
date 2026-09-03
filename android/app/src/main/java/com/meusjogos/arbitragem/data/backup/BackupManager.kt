@@ -19,7 +19,7 @@ import java.time.LocalTime
 class BackupManager(private val repository: JogoRepository) {
 
     companion object {
-        const val VERSAO_BACKUP = 1
+        const val VERSAO_BACKUP = 2
         const val EXTENSAO_ARQUIVO = "json"
         const val MIME_TYPE = "application/json"
 
@@ -69,7 +69,8 @@ class BackupManager(private val repository: JogoRepository) {
         put("categoria", categoria ?: JSONObject.NULL)
         put("equipeMandante", equipeMandante ?: JSONObject.NULL)
         put("equipeVisitante", equipeVisitante ?: JSONObject.NULL)
-        put("local", local ?: JSONObject.NULL)
+        put("cidade", cidade ?: JSONObject.NULL)
+        put("estadio", estadio ?: JSONObject.NULL)
         put("funcao", funcao ?: JSONObject.NULL)
         put("valorCentavos", valorCentavos)
         put("statusPagamento", statusPagamento.name)
@@ -87,7 +88,10 @@ class BackupManager(private val repository: JogoRepository) {
         categoria = optNullableString("categoria"),
         equipeMandante = optNullableString("equipeMandante"),
         equipeVisitante = optNullableString("equipeVisitante"),
-        local = optNullableString("local"),
+        // "cidade"/"estadio" (formato atual) ou, em backups antigos deste
+        // app (versão 1, antes da separação cidade/estádio), "local".
+        cidade = optNullableString("cidade"),
+        estadio = optNullableString("estadio") ?: optNullableString("local"),
         funcao = optNullableString("funcao"),
         valorCentavos = getLong("valorCentavos"),
         statusPagamento = StatusPagamento.valueOf(getString("statusPagamento")),

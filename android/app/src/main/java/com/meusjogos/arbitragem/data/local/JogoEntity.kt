@@ -5,10 +5,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * Linha da tabela "jogos" no Room/SQLite. Segue a estrutura sugerida na
- * seção 22 do briefing: id, data, horario, competicao, categoria,
- * equipeMandante, equipeVisitante, local, funcao, valor, statusPagamento,
- * dataRecebimento, observacoes, dataCriacao, dataAtualizacao.
+ * Linha da tabela "jogos" no Room/SQLite. Baseada na estrutura sugerida na
+ * seção 22 do briefing, com o antigo campo "local" desmembrado em
+ * [cidade] (predefinida + editável) e [estadio] (nome do estádio/ginásio) —
+ * ver [MIGRATION_1_2].
  *
  * Datas são gravadas como "epoch day" (Long) e horários como "HH:mm"
  * (String), sempre anuláveis exceto [data]. O valor é guardado em
@@ -38,8 +38,11 @@ data class JogoEntity(
     @ColumnInfo(name = "equipe_visitante")
     val equipeVisitante: String?,
 
-    @ColumnInfo(name = "local")
-    val local: String?,
+    @ColumnInfo(name = "cidade")
+    val cidade: String?,
+
+    @ColumnInfo(name = "estadio")
+    val estadio: String?,
 
     @ColumnInfo(name = "funcao")
     val funcao: String?,

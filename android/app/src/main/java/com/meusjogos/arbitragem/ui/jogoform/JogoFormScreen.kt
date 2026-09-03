@@ -10,11 +10,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,8 +37,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.meusjogos.arbitragem.core.model.StatusPagamento
+import com.meusjogos.arbitragem.core.util.CurrencyUtils
 import com.meusjogos.arbitragem.ui.components.CampoComOpcoes
 import com.meusjogos.arbitragem.ui.components.CampoDataTexto
 import com.meusjogos.arbitragem.ui.components.CampoHoraTexto
@@ -41,6 +50,13 @@ import com.meusjogos.arbitragem.ui.components.CampoValorMonetario
 private val COMPETICOES_PADRAO = listOf("Campeonato Estadual", "Campeonato Municipal", "Copa", "Amistoso", "Base", "Feminino", "Outro")
 private val CATEGORIAS_PADRAO = listOf("Profissional", "Amador", "Sub-20", "Sub-17", "Sub-15", "Feminino", "Outro")
 private val FUNCOES_PADRAO = listOf("Árbitro", "Assistente 1", "Assistente 2", "Quarto árbitro", "VAR", "Outro")
+
+/** Cidades da região de Sorriso-MT — sugestões; o campo aceita qualquer outra cidade digitada. */
+private val CIDADES_PADRAO = listOf(
+    "Sorriso", "Lucas do Rio Verde", "Nova Mutum", "Tapurah", "Ipiranga do Norte",
+    "Vera", "Feliz Natal", "Sinop", "Cláudia", "União do Sul", "Itaúba",
+    "Nova Ubiratã", "Santa Carmem", "Novo Mundo",
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,10 +151,18 @@ fun JogoFormScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            CampoComOpcoes(
+                valor = estado.cidade,
+                onValorChange = viewModel::atualizarCidade,
+                label = "Cidade",
+                opcoes = CIDADES_PADRAO,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
             OutlinedTextField(
-                value = estado.local,
-                onValueChange = viewModel::atualizarLocal,
-                label = { Text("Local / estádio") },
+                value = estado.estadio,
+                onValueChange = viewModel::atualizarEstadio,
+                label = { Text("Estádio / ginásio") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -156,8 +180,17 @@ fun JogoFormScreen(
                 onValorChange = viewModel::atualizarValor,
                 isError = estado.erroValor != null,
                 supportingText = estado.erroValor,
+                label = if (estado.quantidadePartidas > 1) "Valor por partida" else "Valor",
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            if (estado.permiteVariasPartidas) {
+                CampoQuantidadePartidas(
+                    quantidade = estado.quantidadePartidas,
+                    onQuantidadeChange = viewModel::atualizarQuantidadePartidas,
+                    valorTotalFormatado = CurrencyUtils.formatar(estado.valorTotalCentavos),
+                )
+            }
 
             Column {
                 Text("Status", style = MaterialTheme.typography.labelLarge)
@@ -199,6 +232,67 @@ fun JogoFormScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 24.dp),
             ) {
                 Text(if (estado.salvando) "Salvando..." else "SALVAR")
+            }
+        }
+    }
+}
+
+/**
+ * Cadastro em lote: "apitei 3 partidas hoje, todas por R$ 150" — informa a
+ * quantidade e o app cria um jogo para cada uma, todas A RECEBER, com o
+ * total já somado automaticamente nos totais do dashboard.
+ */
+@Composable
+private fun CampoQuantidadePartidas(
+    quantidade: Int,
+    onQuantidadeChange: (Int) -> Unit,
+    valorTotalFormatado: String,
+) {
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Quantidade de partidas", style = MaterialTheme.typography.labelLarge)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    FilledTonalIconButton(onClick = { onQuantidadeChange(quantidade - 1) }, enabled = quantidade > 1) {
+                        Icon(Icons.Filled.Remove, contentDescription = "Diminuir quantidade")
+                    }
+                    Text(
+                        text = quantidade.toString(),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.width(48.dp),
+                        textAlign = TextAlign.Center,
+                    )
+                    FilledTonalIconButton(onClick = { onQuantidadeChange(quantidade + 1) }, enabled = quantidade < 30) {
+                        Icon(Icons.Filled.Add, contentDescription = "Aumentar quantidade")
+                    }
+                }
+                if (quantidade > 1) {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "Total",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = valorTotalFormatado,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+            if (quantidade > 1) {
+                Text(
+                    text = "$quantidade jogos serão criados, um para cada partida.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
             }
         }
     }

@@ -86,10 +86,14 @@ fun List<Jogo>.competicoesDisponiveis(): List<String> =
 fun List<Jogo>.funcoesDisponiveis(): List<String> =
     mapNotNull { it.funcao?.takeIf(String::isNotBlank) }.distinct().sorted()
 
+/** Todas as cidades distintas já cadastradas (não vazias), em ordem alfabética. */
+fun List<Jogo>.cidadesDisponiveis(): List<String> =
+    mapNotNull { it.cidade?.takeIf(String::isNotBlank) }.distinct().sorted()
+
 /**
  * Cria a cópia de um jogo para a função "Duplicar jogo".
  *
- * Mantém competição, categoria, local, função, observações e equipes (para
+ * Mantém competição, categoria, cidade, estádio, função, observações e equipes (para
  * facilitar o cadastro de jogos semelhantes), mas NUNCA copia o status de
  * pagamento nem a data de recebimento — o novo jogo sempre nasce A RECEBER,
  * pronto para ser editado (data, equipes e valor ficam livres para ajuste).

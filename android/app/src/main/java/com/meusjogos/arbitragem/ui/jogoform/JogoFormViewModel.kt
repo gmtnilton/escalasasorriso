@@ -25,9 +25,11 @@ data class JogoFormUiState(
     val categoria: String = "",
     val equipeMandante: String = "",
     val equipeVisitante: String = "",
-    val local: String = "",
+    val cidade: String = "",
+    val estadio: String = "",
     val funcao: String = "",
     val valorCentavos: Long = 0L,
+    val quantidadePartidas: Int = 1,
     val status: StatusPagamento = StatusPagamento.A_RECEBER,
     val dataRecebimentoTexto: String = "",
     val observacoes: String = "",
@@ -43,6 +45,11 @@ data class JogoFormUiState(
             ModoFormulario.EDITAR -> "Editar jogo"
             ModoFormulario.EDITAR_NOVO_DUPLICADO -> "Editar novo jogo"
         }
+
+    /** REGRA nova: cadastro em lote (N partidas com o mesmo valor) só faz sentido para um jogo novo. */
+    val permiteVariasPartidas: Boolean get() = modo == ModoFormulario.NOVO
+
+    val valorTotalCentavos: Long get() = valorCentavos * quantidadePartidas
 }
 
 class JogoFormViewModel(
@@ -81,7 +88,8 @@ class JogoFormViewModel(
         categoria = jogo.categoria ?: "",
         equipeMandante = jogo.equipeMandante ?: "",
         equipeVisitante = jogo.equipeVisitante ?: "",
-        local = jogo.local ?: "",
+        cidade = jogo.cidade ?: "",
+        estadio = jogo.estadio ?: "",
         funcao = jogo.funcao ?: "",
         valorCentavos = jogo.valorCentavos,
         status = jogo.statusPagamento,
@@ -96,9 +104,14 @@ class JogoFormViewModel(
     fun atualizarCategoria(texto: String) = _uiState.update { it.copy(categoria = texto) }
     fun atualizarEquipeMandante(texto: String) = _uiState.update { it.copy(equipeMandante = texto) }
     fun atualizarEquipeVisitante(texto: String) = _uiState.update { it.copy(equipeVisitante = texto) }
-    fun atualizarLocal(texto: String) = _uiState.update { it.copy(local = texto) }
+    fun atualizarCidade(texto: String) = _uiState.update { it.copy(cidade = texto) }
+    fun atualizarEstadio(texto: String) = _uiState.update { it.copy(estadio = texto) }
     fun atualizarFuncao(texto: String) = _uiState.update { it.copy(funcao = texto) }
     fun atualizarValor(centavos: Long) = _uiState.update { it.copy(valorCentavos = centavos, erroValor = null) }
+
+    /** REGRA nova: quantidade de partidas do cadastro em lote (mínimo 1, no máximo 30 de uma vez). */
+    fun atualizarQuantidadePartidas(quantidade: Int) =
+        _uiState.update { it.copy(quantidadePartidas = quantidade.coerceIn(1, 30)) }
     fun atualizarObservacoes(texto: String) = _uiState.update { it.copy(observacoes = texto) }
     fun atualizarDataRecebimento(texto: String) = _uiState.update { it.copy(dataRecebimentoTexto = texto) }
 
@@ -132,7 +145,8 @@ class JogoFormViewModel(
             categoria = estado.categoria.trim().ifBlank { null },
             equipeMandante = estado.equipeMandante.trim().ifBlank { null },
             equipeVisitante = estado.equipeVisitante.trim().ifBlank { null },
-            local = estado.local.trim().ifBlank { null },
+            cidade = estado.cidade.trim().ifBlank { null },
+            estadio = estado.estadio.trim().ifBlank { null },
             funcao = estado.funcao.trim().ifBlank { null },
             valorCentavos = estado.valorCentavos,
             statusPagamento = estado.status,
@@ -145,9 +159,18 @@ class JogoFormViewModel(
             dataCriacao = estado.dataCriacaoOriginal ?: Instant.now(),
         )
 
+        val quantidade = if (estado.permiteVariasPartidas) estado.quantidadePartidas else 1
+
         _uiState.update { it.copy(salvando = true) }
         viewModelScope.launch {
-            repository.salvar(jogo)
+            if (quantidade <= 1) {
+                repository.salvar(jogo)
+            } else {
+                // Cadastro em lote: N partidas idênticas, cada uma com o valor por partida
+                // informado — os totais (a receber/recebido/geral) somam sozinhos, pois cada
+                // partida vira um jogo independente, podendo depois ser recebido separadamente.
+                repeat(quantidade) { repository.salvar(jogo.copy(id = 0L)) }
+            }
             _uiState.update { it.copy(salvando = false, salvo = true) }
         }
     }

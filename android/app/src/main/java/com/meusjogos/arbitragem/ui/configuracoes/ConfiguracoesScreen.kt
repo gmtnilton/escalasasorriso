@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -110,7 +111,7 @@ fun ConfiguracoesScreen(
             }
 
             item {
-                Card(modifier = Modifier.fillMaxWidth()) {
+                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
                     Column {
                         ListItem(
                             headlineContent = { Text("Fazer backup") },
@@ -137,7 +138,7 @@ fun ConfiguracoesScreen(
             }
 
             item {
-                Card(modifier = Modifier.fillMaxWidth()) {
+                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
                     ListItem(
                         headlineContent = { Text("Meus Jogos de Arbitragem") },
                         supportingContent = { Text("Versão 1.0.0 — funciona 100% offline, seus dados ficam só no aparelho.") },

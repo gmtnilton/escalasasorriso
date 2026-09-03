@@ -25,7 +25,7 @@ class ExportManager(private val repository: JogoRepository) {
 
         private val CABECALHO = listOf(
             "Data", "Horário", "Competição", "Categoria", "Equipe mandante", "Equipe visitante",
-            "Local", "Função", "Valor", "Status", "Data do recebimento", "Observações",
+            "Cidade", "Estádio/Ginásio", "Função", "Valor", "Status", "Data do recebimento", "Observações",
         )
     }
 
@@ -54,7 +54,8 @@ class ExportManager(private val repository: JogoRepository) {
             categoria ?: "",
             equipeMandante ?: "",
             equipeVisitante ?: "",
-            local ?: "",
+            cidade ?: "",
+            estadio ?: "",
             funcao ?: "",
             CurrencyUtils.formatar(valorCentavos),
             status,

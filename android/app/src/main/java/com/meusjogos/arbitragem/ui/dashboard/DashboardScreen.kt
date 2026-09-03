@@ -105,7 +105,11 @@ fun DashboardScreen(
 
 @Composable
 private fun ContadorCard(titulo: String, valor: Int, modifier: Modifier = Modifier) {
-    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(text = valor.toString(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text(
@@ -125,7 +129,10 @@ private fun ResumoPeriodoCard(
     aReceberCentavos: Long,
     totalCentavos: Long,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = rotulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(

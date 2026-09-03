@@ -16,6 +16,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -170,7 +171,7 @@ fun JogoDetailScreen(
 
 @Composable
 private fun DetalhesCard(jogo: Jogo) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -192,7 +193,8 @@ private fun DetalhesCard(jogo: Jogo) {
             jogo.confronto?.let { LinhaDetalhe("Confronto", it) }
             jogo.competicao?.let { LinhaDetalhe("Competição", it) }
             jogo.categoria?.let { LinhaDetalhe("Categoria", it) }
-            jogo.local?.let { LinhaDetalhe("Local", it) }
+            jogo.cidade?.let { LinhaDetalhe("Cidade", it) }
+            jogo.estadio?.let { LinhaDetalhe("Estádio / ginásio", it) }
             jogo.funcao?.let { LinhaDetalhe("Função", it) }
             jogo.dataRecebimento?.let { LinhaDetalhe("Recebido em", DateUtils.formatarData(it)) }
             jogo.observacoes?.let { LinhaDetalhe("Observações", it) }

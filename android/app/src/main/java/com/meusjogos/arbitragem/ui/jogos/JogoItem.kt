@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +32,10 @@ fun JogoItem(jogo: Jogo, onClick: () -> Unit) {
     val coresStatus = LocalStatusColors.current
     val corValor = if (jogo.recebido) coresStatus.recebido else MaterialTheme.colorScheme.onSurface
 
-    Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -57,6 +61,7 @@ fun JogoItem(jogo: Jogo, onClick: () -> Unit) {
 
             val subtitulo = listOfNotNull(
                 jogo.competicao?.takeIf(String::isNotBlank),
+                jogo.cidade?.takeIf(String::isNotBlank),
                 jogo.funcao?.takeIf(String::isNotBlank),
             ).joinToString(" • ")
             if (subtitulo.isNotBlank()) {
