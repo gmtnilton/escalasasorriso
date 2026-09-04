@@ -3,15 +3,17 @@ package com.meusjogos.arbitragem.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SportsSoccer
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SportsSoccer
 import androidx.compose.ui.graphics.vector.ImageVector
 
-/** As 4 telas principais, acessíveis pela navegação inferior (REGRA 24). */
+/** As 5 telas principais, acessíveis pela navegação inferior (REGRA 24). */
 enum class DestinoPrincipal(
     val rota: String,
     val titulo: String,
@@ -20,6 +22,7 @@ enum class DestinoPrincipal(
 ) {
     INICIO("dashboard", "Início", Icons.Filled.Home, Icons.Outlined.Home),
     JOGOS("jogos", "Jogos", Icons.Filled.SportsSoccer, Icons.Outlined.SportsSoccer),
+    RECEBIMENTO("recebimento", "Receber", Icons.Filled.Payments, Icons.Outlined.Payments),
     RESUMO("resumo", "Resumo", Icons.Filled.BarChart, Icons.Outlined.BarChart),
     CONFIGURACOES("configuracoes", "Config.", Icons.Filled.Settings, Icons.Outlined.Settings),
 }

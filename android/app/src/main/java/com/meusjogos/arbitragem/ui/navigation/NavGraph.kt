@@ -34,6 +34,8 @@ import com.meusjogos.arbitragem.ui.jogoform.JogoFormScreen
 import com.meusjogos.arbitragem.ui.jogoform.JogoFormViewModel
 import com.meusjogos.arbitragem.ui.jogos.JogosListScreen
 import com.meusjogos.arbitragem.ui.jogos.JogosListViewModel
+import com.meusjogos.arbitragem.ui.recebimento.RecebimentoScreen
+import com.meusjogos.arbitragem.ui.recebimento.RecebimentoViewModel
 import com.meusjogos.arbitragem.ui.resumo.ResumoScreen
 import com.meusjogos.arbitragem.ui.resumo.ResumoViewModel
 import com.meusjogos.arbitragem.util.ViewModelFactory
@@ -107,6 +109,17 @@ fun MeusJogosNavGraph(repository: JogoRepository, temaPreferences: TemaPreferenc
                     factory = ViewModelFactory { JogosListViewModel(repository) },
                 )
                 JogosListScreen(
+                    viewModel = viewModel,
+                    contentPadding = paddingInterno,
+                    onJogoClick = { jogoId -> navController.navigate(Rotas.jogoDetail(jogoId)) },
+                )
+            }
+
+            composable(DestinoPrincipal.RECEBIMENTO.rota) {
+                val viewModel: RecebimentoViewModel = viewModel(
+                    factory = ViewModelFactory { RecebimentoViewModel(repository) },
+                )
+                RecebimentoScreen(
                     viewModel = viewModel,
                     contentPadding = paddingInterno,
                     onJogoClick = { jogoId -> navController.navigate(Rotas.jogoDetail(jogoId)) },

@@ -30,11 +30,13 @@ data class FiltroJogos(
     val periodo: FiltroPeriodo = FiltroPeriodo.Todos,
     val competicao: String? = null,
     val funcao: String? = null,
+    val cidade: String? = null,
     val pesquisa: String = "",
 ) {
     val ativo: Boolean
         get() = status != FiltroStatus.TODOS ||
             periodo != FiltroPeriodo.Todos ||
             !competicao.isNullOrBlank() ||
-            !funcao.isNullOrBlank()
+            !funcao.isNullOrBlank() ||
+            !cidade.isNullOrBlank()
 }

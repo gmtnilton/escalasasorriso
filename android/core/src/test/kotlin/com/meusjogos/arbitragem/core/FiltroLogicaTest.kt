@@ -82,6 +82,19 @@ class FiltroLogicaTest {
     }
 
     @Test
+    fun `filtro por cidade`() {
+        val jogos = listOf(
+            Jogo(data = LocalDate.now(), valorCentavos = 1000, cidade = "Sorriso"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1000, cidade = "Sinop"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1000, cidade = null),
+        )
+
+        val resultado = jogos.filtrarEPesquisar(FiltroJogos(cidade = "sorriso"))
+        assertEquals(1, resultado.size)
+        assertEquals("Sorriso", resultado.first().cidade)
+    }
+
+    @Test
     fun `ordenacao padrao e do mais recente para o mais antigo`() {
         val antigo = Jogo(id = 1, data = LocalDate.of(2026, 1, 1), valorCentavos = 1000)
         val recente = Jogo(id = 2, data = LocalDate.of(2026, 9, 1), valorCentavos = 1000)
