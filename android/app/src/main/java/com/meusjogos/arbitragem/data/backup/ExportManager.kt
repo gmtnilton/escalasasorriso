@@ -24,7 +24,7 @@ class ExportManager(private val repository: JogoRepository) {
             "meus-jogos-arbitragem-${LocalDate.now()}.$EXTENSAO_ARQUIVO"
 
         private val CABECALHO = listOf(
-            "Data", "Horário", "Competição", "Categoria", "Equipe mandante", "Equipe visitante",
+            "Data", "Horário", "Competição", "Modalidade", "Categoria", "Equipe mandante", "Equipe visitante",
             "Cidade", "Estádio/Ginásio", "Função", "Valor", "Status", "Data do recebimento", "Observações",
         )
     }
@@ -51,6 +51,7 @@ class ExportManager(private val repository: JogoRepository) {
             DateUtils.formatarData(data),
             horario?.let { DateUtils.formatarHora(it) } ?: "",
             competicao ?: "",
+            modalidade ?: "",
             categoria ?: "",
             equipeMandante ?: "",
             equipeVisitante ?: "",

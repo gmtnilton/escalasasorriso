@@ -50,6 +50,7 @@ import com.meusjogos.arbitragem.ui.components.CampoValorMonetario
 private val COMPETICOES_PADRAO = listOf("Campeonato Estadual", "Campeonato Municipal", "Copa", "Amistoso", "Base", "Feminino", "Outro")
 private val CATEGORIAS_PADRAO = listOf("Profissional", "Amador", "Sub-20", "Sub-17", "Sub-15", "Feminino", "Outro")
 private val FUNCOES_PADRAO = listOf("Árbitro", "Assistente 1", "Assistente 2", "Quarto árbitro", "VAR", "Outro")
+private val MODALIDADES_PADRAO = listOf("Futebol de Campo", "Futebol Society", "Futsal", "Beach Soccer", "Outro")
 
 /** Cidades da região de Sorriso-MT — sugestões; o campo aceita qualquer outra cidade digitada. */
 private val CIDADES_PADRAO = listOf(
@@ -124,6 +125,14 @@ fun JogoFormScreen(
                 onValorChange = viewModel::atualizarCompeticao,
                 label = "Competição",
                 opcoes = COMPETICOES_PADRAO,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            CampoComOpcoes(
+                valor = estado.modalidade,
+                onValorChange = viewModel::atualizarModalidade,
+                label = "Modalidade",
+                opcoes = MODALIDADES_PADRAO,
                 modifier = Modifier.fillMaxWidth(),
             )
 

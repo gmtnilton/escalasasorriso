@@ -29,6 +29,9 @@ data class JogoEntity(
     @ColumnInfo(name = "competicao")
     val competicao: String?,
 
+    @ColumnInfo(name = "modalidade")
+    val modalidade: String?,
+
     @ColumnInfo(name = "categoria")
     val categoria: String?,
 

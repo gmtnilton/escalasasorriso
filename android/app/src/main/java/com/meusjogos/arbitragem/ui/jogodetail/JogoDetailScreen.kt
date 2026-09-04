@@ -192,6 +192,7 @@ private fun DetalhesCard(jogo: Jogo) {
             jogo.horario?.let { LinhaDetalhe("Horário", DateUtils.formatarHora(it)) }
             jogo.confronto?.let { LinhaDetalhe("Confronto", it) }
             jogo.competicao?.let { LinhaDetalhe("Competição", it) }
+            jogo.modalidade?.let { LinhaDetalhe("Modalidade", it) }
             jogo.categoria?.let { LinhaDetalhe("Categoria", it) }
             jogo.cidade?.let { LinhaDetalhe("Cidade", it) }
             jogo.estadio?.let { LinhaDetalhe("Estádio / ginásio", it) }

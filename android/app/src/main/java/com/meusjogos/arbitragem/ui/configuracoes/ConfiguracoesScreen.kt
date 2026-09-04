@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.Card
@@ -78,6 +79,20 @@ fun ConfiguracoesScreen(
         }
     }
 
+    val lancadorImportarOutroSistema = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        escopo.launch {
+            val conteudo = context.contentResolver.openInputStream(uri)?.use { entrada ->
+                BufferedReader(InputStreamReader(entrada, Charsets.UTF_8)).readText()
+            }
+            if (conteudo != null) {
+                viewModel.importarDeOutroSistema(conteudo)
+            } else {
+                viewModel.reportarErro("Não foi possível ler o arquivo selecionado.")
+            }
+        }
+    }
+
     val lancadorExportarCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri: Uri? ->
         if (uri == null) return@rememberLauncherForActivityResult
         escopo.launch {
@@ -132,6 +147,14 @@ fun ConfiguracoesScreen(
                             supportingContent = { Text("Gera uma planilha para abrir no Excel/Planilhas") },
                             leadingContent = { Icon(Icons.Filled.TableChart, contentDescription = null) },
                             modifier = Modifier.clickable { lancadorExportarCsv.launch(viewModel.nomeArquivoCsv()) },
+                        )
+                        ListItem(
+                            headlineContent = { Text("Importar de outro sistema") },
+                            supportingContent = { Text("Soma os jogos de um arquivo .json de outro app — nada é apagado") },
+                            leadingContent = { Icon(Icons.Filled.FileDownload, contentDescription = null) },
+                            modifier = Modifier.clickable {
+                                lancadorImportarOutroSistema.launch(arrayOf("application/json", "text/*", "*/*"))
+                            },
                         )
                     }
                 }

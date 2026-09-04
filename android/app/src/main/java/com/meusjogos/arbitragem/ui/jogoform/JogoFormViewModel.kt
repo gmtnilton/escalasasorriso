@@ -22,6 +22,7 @@ data class JogoFormUiState(
     val dataTexto: String = "",
     val horarioTexto: String = "",
     val competicao: String = "",
+    val modalidade: String = "",
     val categoria: String = "",
     val equipeMandante: String = "",
     val equipeVisitante: String = "",
@@ -85,6 +86,7 @@ class JogoFormViewModel(
         dataTexto = DateUtils.formatarData(jogo.data),
         horarioTexto = jogo.horario?.let { DateUtils.formatarHora(it) } ?: "",
         competicao = jogo.competicao ?: "",
+        modalidade = jogo.modalidade ?: "",
         categoria = jogo.categoria ?: "",
         equipeMandante = jogo.equipeMandante ?: "",
         equipeVisitante = jogo.equipeVisitante ?: "",
@@ -101,6 +103,7 @@ class JogoFormViewModel(
     fun atualizarData(texto: String) = _uiState.update { it.copy(dataTexto = texto, erroData = null) }
     fun atualizarHorario(texto: String) = _uiState.update { it.copy(horarioTexto = texto) }
     fun atualizarCompeticao(texto: String) = _uiState.update { it.copy(competicao = texto) }
+    fun atualizarModalidade(texto: String) = _uiState.update { it.copy(modalidade = texto) }
     fun atualizarCategoria(texto: String) = _uiState.update { it.copy(categoria = texto) }
     fun atualizarEquipeMandante(texto: String) = _uiState.update { it.copy(equipeMandante = texto) }
     fun atualizarEquipeVisitante(texto: String) = _uiState.update { it.copy(equipeVisitante = texto) }
@@ -142,6 +145,7 @@ class JogoFormViewModel(
             data = data,
             horario = DateUtils.parseHora(estado.horarioTexto),
             competicao = estado.competicao.trim().ifBlank { null },
+            modalidade = estado.modalidade.trim().ifBlank { null },
             categoria = estado.categoria.trim().ifBlank { null },
             equipeMandante = estado.equipeMandante.trim().ifBlank { null },
             equipeVisitante = estado.equipeVisitante.trim().ifBlank { null },

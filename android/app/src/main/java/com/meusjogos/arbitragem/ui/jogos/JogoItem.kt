@@ -61,6 +61,7 @@ fun JogoItem(jogo: Jogo, onClick: () -> Unit) {
 
             val subtitulo = listOfNotNull(
                 jogo.competicao?.takeIf(String::isNotBlank),
+                jogo.modalidade?.takeIf(String::isNotBlank),
                 jogo.cidade?.takeIf(String::isNotBlank),
                 jogo.funcao?.takeIf(String::isNotBlank),
             ).joinToString(" • ")

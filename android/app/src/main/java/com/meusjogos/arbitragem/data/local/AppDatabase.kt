@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [JogoEntity::class], version = 2, exportSchema = true)
+@Database(entities = [JogoEntity::class], version = 3, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun jogoDao(): JogoDao
@@ -24,7 +24,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     NOME_BANCO,
-                ).addMigrations(MIGRATION_1_2).build().also { instancia = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { instancia = it }
             }
     }
 }
@@ -78,5 +78,12 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         )
         db.execSQL("DROP TABLE jogos")
         db.execSQL("ALTER TABLE jogos_new RENAME TO jogos")
+    }
+}
+
+/** v2 -> v3: adiciona "modalidade" (Futebol de Campo, Society, Futsal...) — simples ADD COLUMN, nada é perdido. */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE jogos ADD COLUMN modalidade TEXT")
     }
 }

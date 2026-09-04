@@ -65,6 +65,35 @@ class ConfiguracoesViewModel(private val repository: JogoRepository) : ViewModel
         }
     }
 
+    /**
+     * Importa um backup de OUTRO sistema de controle de jogos (formato
+     * "records"/"qty"/"value") — soma aos jogos já cadastrados neste app,
+     * nunca substitui nem apaga nada.
+     */
+    fun importarDeOutroSistema(conteudo: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(processando = true, mensagem = null) }
+            try {
+                val quantidade = backupManager.importarDeOutroSistema(conteudo)
+                _uiState.update {
+                    it.copy(
+                        processando = false,
+                        mensagem = "$quantidade jogo(s) importado(s) e somado(s) aos seus jogos.",
+                        mensagemErro = false,
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        processando = false,
+                        mensagem = "Não foi possível importar este arquivo: ${e.message ?: "formato inválido"}.",
+                        mensagemErro = true,
+                    )
+                }
+            }
+        }
+    }
+
     fun reportarErro(mensagem: String) {
         _uiState.update { it.copy(mensagem = mensagem, mensagemErro = true) }
     }

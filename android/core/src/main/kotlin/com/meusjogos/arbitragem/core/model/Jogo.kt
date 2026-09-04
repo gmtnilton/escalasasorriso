@@ -20,6 +20,7 @@ data class Jogo(
     val data: LocalDate,
     val horario: LocalTime? = null,
     val competicao: String? = null,
+    val modalidade: String? = null,
     val categoria: String? = null,
     val equipeMandante: String? = null,
     val equipeVisitante: String? = null,

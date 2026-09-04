@@ -90,6 +90,10 @@ fun List<Jogo>.funcoesDisponiveis(): List<String> =
 fun List<Jogo>.cidadesDisponiveis(): List<String> =
     mapNotNull { it.cidade?.takeIf(String::isNotBlank) }.distinct().sorted()
 
+/** Todas as modalidades distintas já cadastradas (não vazias), em ordem alfabética. */
+fun List<Jogo>.modalidadesDisponiveis(): List<String> =
+    mapNotNull { it.modalidade?.takeIf(String::isNotBlank) }.distinct().sorted()
+
 /**
  * Cria a cópia de um jogo para a função "Duplicar jogo".
  *

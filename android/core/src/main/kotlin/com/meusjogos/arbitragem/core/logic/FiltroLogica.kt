@@ -30,7 +30,10 @@ fun FiltroPeriodo.paraIntervalo(hoje: LocalDate = LocalDate.now()): Pair<LocalDa
 private fun Jogo.correspondeA(query: String): Boolean {
     if (query.isBlank()) return true
     val termo = query.trim()
-    val campos = listOf(equipeMandante, equipeVisitante, competicao, categoria, cidade, estadio, funcao, observacoes)
+    val campos = listOf(
+        equipeMandante, equipeVisitante, competicao, modalidade, categoria,
+        cidade, estadio, funcao, observacoes,
+    )
     return campos.any { campo -> campo != null && campo.contains(termo, ignoreCase = true) }
 }
 

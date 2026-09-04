@@ -62,9 +62,14 @@ class JogoRepository(private val dao: JogoDao) {
     /** Lista completa "de uma vez", usada por backup/exportação. */
     suspend fun listarTudoUmaVez(): List<Jogo> = dao.observarTodos().first().map { it.toDomain() }
 
-    /** Substitui toda a base de dados pelos jogos restaurados de um backup. */
+    /** Substitui toda a base de dados pelos jogos restaurados de um backup (formato deste app). */
     suspend fun restaurarBackup(jogos: List<Jogo>) {
         dao.excluirTodos()
+        dao.inserirTodos(jogos.map { it.toEntity().copy(id = 0L) })
+    }
+
+    /** Importa jogos de outra origem (ex.: outro sistema) SOMANDO aos já cadastrados — nada é apagado. */
+    suspend fun importarJogos(jogos: List<Jogo>) {
         dao.inserirTodos(jogos.map { it.toEntity().copy(id = 0L) })
     }
 }
