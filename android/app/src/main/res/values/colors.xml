@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Identidade visual ESCALA S ARBITRAGEM: navy + dourado. -->
+    <color name="ic_launcher_background">#0F2A52</color>
+    <color name="windowBackground">#0F2A52</color>
+</resources>
