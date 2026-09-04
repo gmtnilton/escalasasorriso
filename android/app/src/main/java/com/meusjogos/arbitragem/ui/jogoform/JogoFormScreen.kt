@@ -34,6 +34,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +44,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.meusjogos.arbitragem.core.model.StatusPagamento
 import com.meusjogos.arbitragem.core.util.CurrencyUtils
+import com.meusjogos.arbitragem.data.preferences.AtivacaoPreferences
+import com.meusjogos.arbitragem.ui.components.AtivacaoDialog
 import com.meusjogos.arbitragem.ui.components.CampoComOpcoes
 import com.meusjogos.arbitragem.ui.components.CampoDataTexto
 import com.meusjogos.arbitragem.ui.components.CampoHoraTexto
@@ -63,10 +68,25 @@ private val CIDADES_PADRAO = listOf(
 @Composable
 fun JogoFormScreen(
     viewModel: JogoFormViewModel,
+    ativacaoPreferences: AtivacaoPreferences,
     onSalvarConcluido: () -> Unit,
     onCancelar: () -> Unit,
 ) {
     val estado by viewModel.uiState.collectAsState()
+    val ativado by ativacaoPreferences.ativado.collectAsState()
+    var mostrarAtivacao by remember { mutableStateOf(false) }
+
+    // REGRA: só CRIAR um jogo (novo ou duplicado) exige ativação — editar um
+    // jogo já existente nunca fica bloqueado.
+    val exigeAtivacao = estado.modo != ModoFormulario.EDITAR
+
+    fun tentarSalvar() {
+        if (exigeAtivacao && !ativado) {
+            mostrarAtivacao = true
+        } else {
+            viewModel.salvar()
+        }
+    }
 
     LaunchedEffect(estado.salvo) {
         if (estado.salvo) onSalvarConcluido()
@@ -246,13 +266,24 @@ fun JogoFormScreen(
             }
 
             Button(
-                onClick = viewModel::salvar,
+                onClick = ::tentarSalvar,
                 enabled = !estado.salvando,
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 24.dp),
             ) {
                 Text(if (estado.salvando) "Salvando..." else "Salvar")
             }
         }
+    }
+
+    if (mostrarAtivacao) {
+        AtivacaoDialog(
+            ativacaoPreferences = ativacaoPreferences,
+            onAtivado = {
+                mostrarAtivacao = false
+                viewModel.salvar()
+            },
+            onFechar = { mostrarAtivacao = false },
+        )
     }
 }
 

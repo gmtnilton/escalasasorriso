@@ -12,10 +12,26 @@ android {
         applicationId = "com.meusjogos.arbitragem"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    // Keystore de debug FIXO, versionado no repositório — sem ele, cada
+    // execução do CI (rodando numa máquina efêmera) poderia gerar um
+    // keystore de debug diferente, o que faz o Android tratar cada build
+    // como um app com identidade diferente e IMPEDE instalar uma versão
+    // nova por cima da anterior (é preciso desinstalar antes). Com a
+    // mesma chave em todo build, a instalação por cima funciona como uma
+    // atualização normal, preservando os dados do usuário.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {

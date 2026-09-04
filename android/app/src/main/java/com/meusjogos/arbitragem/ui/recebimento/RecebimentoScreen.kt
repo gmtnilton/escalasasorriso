@@ -1,5 +1,7 @@
 package com.meusjogos.arbitragem.ui.recebimento
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +30,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,6 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -92,44 +96,52 @@ fun RecebimentoScreen(
 
     Box(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth().padding(
                     start = 16.dp, end = 16.dp,
                     top = contentPadding.calculateTopPadding() + 16.dp,
                     bottom = 12.dp,
                 ),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (modoSelecao) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = viewModel::limparSelecao) {
-                            Icon(Icons.Filled.Close, contentDescription = "Cancelar seleção")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (modoSelecao) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = viewModel::desmarcarTodos) {
+                                Icon(Icons.Filled.Close, contentDescription = "Cancelar seleção")
+                            }
+                            Text(
+                                text = "✓ ${estado.selecionados.size} " +
+                                    if (estado.selecionados.size == 1) "jogo selecionado" else "jogos selecionados",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
                         }
-                        Text(
-                            text = "✓ ${estado.selecionados.size} " +
-                                if (estado.selecionados.size == 1) "jogo selecionado" else "jogos selecionados",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
+                    } else {
+                        Text("📥 Recebimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                     }
-                } else {
-                    Column {
-                        Text("💰 Recebimento", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                        Text(
-                            text = "🔴 ${estado.totalPendentesFiltrados} " +
-                                if (estado.totalPendentesFiltrados == 1) "jogo pendente" else "jogos pendentes",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = coresStatus.aReceber,
-                            modifier = Modifier.padding(top = 2.dp),
-                        )
+
+                    if (estado.jogosFiltrados.isNotEmpty()) {
+                        Row {
+                            if (modoSelecao) {
+                                TextButton(onClick = viewModel::desmarcarTodos) { Text("Desmarcar todos") }
+                            }
+                            TextButton(onClick = viewModel::selecionarTodosVisiveis) { Text("Selecionar todos") }
+                        }
                     }
                 }
 
-                if (estado.jogosFiltrados.isNotEmpty()) {
-                    TextButton(onClick = viewModel::selecionarTodosVisiveis) {
-                        Text("Selecionar todos")
+                if (!modoSelecao) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    ) {
+                        ContadorRecebimento(emoji = "🔴", valor = estado.totalPendentes, rotulo = "Pendentes", cor = coresStatus.aReceber)
+                        ContadorRecebimento(emoji = "🟢", valor = estado.totalRecebidos, rotulo = "Recebidos", cor = coresStatus.recebido)
+                        ContadorRecebimento(emoji = "⚽", valor = estado.totalGeral, rotulo = "Total", cor = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -143,7 +155,7 @@ fun RecebimentoScreen(
                     value = estado.filtro.pesquisa,
                     onValueChange = viewModel::atualizarPesquisa,
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Pesquisar jogo específico...") },
+                    placeholder = { Text("🔎 Pesquisar jogo, equipe ou cidade...") },
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
                     leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
@@ -178,7 +190,7 @@ fun RecebimentoScreen(
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(
-                        start = 16.dp, end = 16.dp, top = 8.dp,
+                        start = 16.dp, end = 16.dp, top = 16.dp,
                         bottom = contentPadding.calculateBottomPadding() + (if (modoSelecao) 96.dp else 32.dp),
                     ),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -210,13 +222,20 @@ fun RecebimentoScreen(
                         dataRecebimentoTexto = DateUtils.formatarData(LocalDate.now())
                         mostrarConfirmar = true
                     },
+                    enabled = !estado.processando,
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                         .padding(bottom = contentPadding.calculateBottomPadding()),
                 ) {
-                    Text("MARCAR COMO RECEBIDOS (${estado.selecionados.size})")
+                    if (estado.processando) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Processando...")
+                    } else {
+                        Text("📥 MARCAR COMO RECEBIDOS (${estado.selecionados.size})")
+                    }
                 }
             }
         }
@@ -244,13 +263,12 @@ fun RecebimentoScreen(
     if (mostrarConfirmar) {
         AlertDialog(
             onDismissRequest = { mostrarConfirmar = false },
-            title = { Text("Marcar jogos como recebidos?") },
+            title = { Text("📥 Confirmar recebimento") },
             text = {
                 Column {
                     Text(
-                        "Você está marcando ${estado.selecionados.size} " +
-                            "${if (estado.selecionados.size == 1) "jogo" else "jogos"} como recebido(s). " +
-                            "Deseja continuar?",
+                        "Você está prestes a marcar ${estado.selecionados.size} " +
+                            "${if (estado.selecionados.size == 1) "jogo" else "jogos"} como recebido(s).",
                     )
                     CampoDataTexto(
                         texto = dataRecebimentoTexto,
@@ -274,6 +292,23 @@ fun RecebimentoScreen(
     }
 }
 
+@Composable
+private fun ContadorRecebimento(emoji: String, valor: Int, rotulo: String, cor: Color) {
+    Column {
+        Text(
+            text = "$emoji $valor",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = cor,
+        )
+        Text(
+            text = rotulo,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun RecebimentoJogoItem(
@@ -286,12 +321,15 @@ private fun RecebimentoJogoItem(
 ) {
     val coresStatus = LocalStatusColors.current
     val corValor = if (jogo.recebido) coresStatus.recebido else coresStatus.aReceber
+    val corFundo by animateColorAsState(
+        targetValue = if (selecionado) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+        animationSpec = tween(200),
+        label = "selecao-cor",
+    )
 
     Card(
         modifier = modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        colors = CardDefaults.cardColors(
-            containerColor = if (selecionado) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-        ),
+        colors = CardDefaults.cardColors(containerColor = corFundo),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -304,47 +342,47 @@ private fun RecebimentoJogoItem(
             }
 
             Column(modifier = Modifier.weight(1f)) {
+                jogo.competicao?.takeIf(String::isNotBlank)?.let { competicao ->
+                    Text(
+                        text = "🏆 ${competicao.uppercase()}",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
                 Text(
                     text = "⚽ ${jogo.confronto ?: "Escala Arbitragem"}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp),
                 )
                 val horario = jogo.horario
-                val dataHora = if (horario != null) {
-                    "${DateUtils.formatarData(jogo.data)} • ${DateUtils.formatarHora(horario)}"
-                } else {
-                    DateUtils.formatarData(jogo.data)
-                }
+                val camposLinha = listOfNotNull(
+                    "📅 ${DateUtils.formatarData(jogo.data)}",
+                    horario?.let { "⏰ ${DateUtils.formatarHora(it)}" },
+                    jogo.cidade?.takeIf(String::isNotBlank)?.let { "📍 $it" },
+                ).joinToString("   ")
                 Text(
-                    text = dataHora,
+                    text = camposLinha,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),
                 )
-                val subtitulo = listOfNotNull(
-                    jogo.competicao?.takeIf(String::isNotBlank),
-                    jogo.cidade?.takeIf(String::isNotBlank),
-                ).joinToString(" • ")
-                if (subtitulo.isNotBlank()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    StatusChip(jogo.statusPagamento)
                     Text(
-                        text = subtitulo,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp),
+                        text = CurrencyUtils.formatar(jogo.valorCentavos),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = corValor,
                     )
                 }
-            }
-
-            Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(start = 8.dp)) {
-                Text(
-                    text = CurrencyUtils.formatar(jogo.valorCentavos),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = corValor,
-                )
-                StatusChip(jogo.statusPagamento, modifier = Modifier.padding(top = 6.dp))
             }
         }
     }

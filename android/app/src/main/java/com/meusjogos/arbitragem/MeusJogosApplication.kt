@@ -2,6 +2,7 @@ package com.meusjogos.arbitragem
 
 import android.app.Application
 import com.meusjogos.arbitragem.data.local.AppDatabase
+import com.meusjogos.arbitragem.data.preferences.AtivacaoPreferences
 import com.meusjogos.arbitragem.data.preferences.TemaPreferences
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 
@@ -16,4 +17,6 @@ class MeusJogosApplication : Application() {
     }
 
     val temaPreferences: TemaPreferences by lazy { TemaPreferences(this) }
+
+    val ativacaoPreferences: AtivacaoPreferences by lazy { AtivacaoPreferences(this) }
 }

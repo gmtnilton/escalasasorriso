@@ -22,6 +22,7 @@ class MainActivity : ComponentActivity() {
         val app = application as MeusJogosApplication
         val repository = app.repository
         val temaPreferences = app.temaPreferences
+        val ativacaoPreferences = app.ativacaoPreferences
 
         setContent {
             val modoTema by temaPreferences.modo.collectAsState()
@@ -32,7 +33,11 @@ class MainActivity : ComponentActivity() {
             }
             MeusJogosArbitragemTheme(darkTheme = temaEscuro) {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    MeusJogosNavGraph(repository = repository, temaPreferences = temaPreferences)
+                    MeusJogosNavGraph(
+                        repository = repository,
+                        temaPreferences = temaPreferences,
+                        ativacaoPreferences = ativacaoPreferences,
+                    )
                 }
             }
         }

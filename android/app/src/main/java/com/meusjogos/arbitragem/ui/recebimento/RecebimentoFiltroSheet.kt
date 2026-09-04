@@ -53,12 +53,12 @@ fun RecebimentoFiltroSheet(
                 FilterChip(
                     selected = filtro.status == FiltroStatus.A_RECEBER,
                     onClick = { onStatusChange(FiltroStatus.A_RECEBER) },
-                    label = { Text("Pendente") },
+                    label = { Text("🔴 Pendentes") },
                 )
                 FilterChip(
                     selected = filtro.status == FiltroStatus.RECEBIDOS,
                     onClick = { onStatusChange(FiltroStatus.RECEBIDOS) },
-                    label = { Text("Recebido") },
+                    label = { Text("🟢 Recebidos") },
                 )
                 FilterChip(
                     selected = filtro.status == FiltroStatus.TODOS,
@@ -67,7 +67,7 @@ fun RecebimentoFiltroSheet(
                 )
             }
 
-            SecaoFiltro(titulo = "Data") {
+            SecaoFiltro(titulo = "📅 Data") {
                 val opcoes = listOf(
                     "Todas" to FiltroPeriodo.Todos,
                     "Hoje" to FiltroPeriodo.Hoje,
@@ -134,7 +134,7 @@ fun RecebimentoFiltroSheet(
 
             if (competicoesDisponiveis.isNotEmpty()) {
                 SecaoDropdown(
-                    titulo = "Competição",
+                    titulo = "🏆 Competição",
                     valorSelecionado = filtro.competicao,
                     opcoes = competicoesDisponiveis,
                     onSelecionar = onCompeticaoChange,
@@ -143,7 +143,7 @@ fun RecebimentoFiltroSheet(
 
             if (cidadesDisponiveis.isNotEmpty()) {
                 SecaoDropdown(
-                    titulo = "Cidade",
+                    titulo = "📍 Cidade",
                     valorSelecionado = filtro.cidade,
                     opcoes = cidadesDisponiveis,
                     onSelecionar = onCidadeChange,

@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.meusjogos.arbitragem.data.preferences.AtivacaoPreferences
 import com.meusjogos.arbitragem.data.preferences.TemaPreferences
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 import com.meusjogos.arbitragem.ui.configuracoes.ConfiguracoesScreen
@@ -42,7 +43,11 @@ import com.meusjogos.arbitragem.util.ViewModelFactory
 
 /** Grafo de navegação raiz: barra inferior (4 telas principais) + telas empilhadas. */
 @Composable
-fun MeusJogosNavGraph(repository: JogoRepository, temaPreferences: TemaPreferences) {
+fun MeusJogosNavGraph(
+    repository: JogoRepository,
+    temaPreferences: TemaPreferences,
+    ativacaoPreferences: AtivacaoPreferences,
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val rotaAtual = backStackEntry?.destination?.route
@@ -154,6 +159,7 @@ fun MeusJogosNavGraph(repository: JogoRepository, temaPreferences: TemaPreferenc
                 )
                 JogoFormScreen(
                     viewModel = viewModel,
+                    ativacaoPreferences = ativacaoPreferences,
                     onSalvarConcluido = { navController.popBackStack() },
                     onCancelar = { navController.popBackStack() },
                 )

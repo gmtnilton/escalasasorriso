@@ -26,10 +26,13 @@ data class RecebimentoUiState(
     val competicoesDisponiveis: List<String> = emptyList(),
     val cidadesDisponiveis: List<String> = emptyList(),
     val selecionados: Set<Long> = emptySet(),
+    val processando: Boolean = false,
     val mensagem: String? = null,
-) {
-    val totalPendentesFiltrados: Int get() = jogosFiltrados.count { !it.recebido }
-}
+    /** Contadores do topo — respeitam competição/cidade/data/pesquisa, mas SEMPRE olham para todos os status. */
+    val totalPendentes: Int = 0,
+    val totalRecebidos: Int = 0,
+    val totalGeral: Int = 0,
+)
 
 /**
  * Área "Recebimento": marcar vários jogos como recebidos de uma vez — por
@@ -38,17 +41,21 @@ data class RecebimentoUiState(
  * filtro (FiltroJogos/filtrarEPesquisar) e a mesma escrita em lote
  * (marcarVariosComoRecebido) já usados na lista "Meus Jogos"; o recebimento
  * individual em JogoDetailScreen continua existindo, sem nenhuma alteração.
+ * A baixa em lote só ATUALIZA jogos já existentes pelo id — nunca cria ou
+ * duplica nenhum registro.
  */
 class RecebimentoViewModel(private val repository: JogoRepository) : ViewModel() {
 
     private val filtro = MutableStateFlow(FiltroJogos(status = FiltroStatus.A_RECEBER))
     private val selecionadosBrutos = MutableStateFlow<Set<Long>>(emptySet())
+    private val processando = MutableStateFlow(false)
     private val mensagem = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<RecebimentoUiState> = combine(
-        repository.observarJogos(), filtro, selecionadosBrutos, mensagem,
-    ) { jogos, filtroAtual, selecaoBruta, msg ->
+        repository.observarJogos(), filtro, selecionadosBrutos, processando, mensagem,
+    ) { jogos, filtroAtual, selecaoBruta, proc, msg ->
         val jogosFiltrados = jogos.filtrarEPesquisar(filtroAtual).ordenarMaisRecentePrimeiro()
+        val jogosParaContadores = jogos.filtrarEPesquisar(filtroAtual.copy(status = FiltroStatus.TODOS))
         val idsVisiveis = jogosFiltrados.map { it.id }.toSet()
         RecebimentoUiState(
             carregando = false,
@@ -57,7 +64,11 @@ class RecebimentoViewModel(private val repository: JogoRepository) : ViewModel()
             competicoesDisponiveis = jogos.competicoesDisponiveis(),
             cidadesDisponiveis = jogos.cidadesDisponiveis(),
             selecionados = selecaoBruta.intersect(idsVisiveis),
+            processando = proc,
             mensagem = msg,
+            totalPendentes = jogosParaContadores.count { !it.recebido },
+            totalRecebidos = jogosParaContadores.count { it.recebido },
+            totalGeral = jogosParaContadores.size,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecebimentoUiState())
 
@@ -96,20 +107,26 @@ class RecebimentoViewModel(private val repository: JogoRepository) : ViewModel()
         selecionadosBrutos.value = uiState.value.jogosFiltrados.map { it.id }.toSet()
     }
 
-    fun limparSelecao() {
+    /** "Desmarcar todos" — limpa a seleção sem sair do modo de seleção sozinho (fica vazio = sai). */
+    fun desmarcarTodos() {
         selecionadosBrutos.value = emptySet()
     }
 
-    /** Baixa em lote: marca todos os jogos selecionados como recebidos, de uma única vez. */
+    /** Baixa em lote: marca todos os jogos selecionados como recebidos, de uma única vez, sem duplicar nada.
+     * Protegido contra duplo toque — se já houver uma marcação em andamento, ignora a chamada. */
     fun marcarSelecionadosComoRecebido(dataRecebimento: LocalDate = LocalDate.now()) {
+        if (processando.value) return
         val estadoAtual = uiState.value
         val jogosParaMarcar = estadoAtual.jogosFiltrados.filter { it.id in estadoAtual.selecionados && !it.recebido }
         if (jogosParaMarcar.isEmpty()) return
         val quantidade = jogosParaMarcar.size
+        processando.value = true
         viewModelScope.launch {
             repository.marcarVariosComoRecebido(jogosParaMarcar, dataRecebimento)
             selecionadosBrutos.value = emptySet()
-            mensagem.value = "✓ $quantidade ${if (quantidade == 1) "jogo marcado" else "jogos marcados"} como recebido(s) com sucesso."
+            mensagem.value = "✓ Recebimento concluído — $quantidade " +
+                "${if (quantidade == 1) "jogo marcado" else "jogos marcados"} como recebido(s) com sucesso."
+            processando.value = false
         }
     }
 
