@@ -54,8 +54,9 @@ fun JogoItem(jogo: Jogo, onClick: () -> Unit, modifier: Modifier = Modifier) {
                 StatusChip(jogo.statusPagamento)
             }
 
-            val dataHora = if (jogo.horario != null) {
-                "${DateUtils.formatarData(jogo.data)} • ${DateUtils.formatarHora(jogo.horario)}"
+            val horario = jogo.horario
+            val dataHora = if (horario != null) {
+                "${DateUtils.formatarData(jogo.data)} • ${DateUtils.formatarHora(horario)}"
             } else {
                 DateUtils.formatarData(jogo.data)
             }

@@ -191,8 +191,9 @@ private fun DetalhesCard(jogo: Jogo) {
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
-            val dataHora = if (jogo.horario != null) {
-                "${DateUtils.formatarData(jogo.data)} • ${DateUtils.formatarHora(jogo.horario)}"
+            val horario = jogo.horario
+            val dataHora = if (horario != null) {
+                "${DateUtils.formatarData(jogo.data)} • ${DateUtils.formatarHora(horario)}"
             } else {
                 DateUtils.formatarData(jogo.data)
             }
