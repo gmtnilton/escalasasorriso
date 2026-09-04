@@ -55,6 +55,15 @@ class JogoRepository(private val dao: JogoDao) {
         dao.atualizar(marcarComoRecebidoLogica(jogo, dataRecebimento).toEntity())
     }
 
+    /**
+     * Marca VÁRIOS jogos como recebidos de uma vez (ex.: todos os jogos de
+     * uma competição, já filtrados pela tela) — a "baixa em lote", para não
+     * precisar marcar jogo por jogo quando uma competição inteira é paga.
+     */
+    suspend fun marcarVariosComoRecebido(jogos: List<Jogo>, dataRecebimento: LocalDate = LocalDate.now()) {
+        jogos.forEach { jogo -> dao.atualizar(marcarComoRecebidoLogica(jogo, dataRecebimento).toEntity()) }
+    }
+
     suspend fun desfazerRecebimento(jogo: Jogo) {
         dao.atualizar(desfazerRecebimentoLogica(jogo).toEntity())
     }

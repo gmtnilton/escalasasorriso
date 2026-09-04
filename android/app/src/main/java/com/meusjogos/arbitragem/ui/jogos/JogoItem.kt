@@ -24,7 +24,7 @@ import com.meusjogos.arbitragem.ui.theme.LocalStatusColors
 
 /**
  * Card de um jogo na lista "Meus Jogos" (REGRA 7): título com o confronto —
- * ou "⚽ Jogo de arbitragem" quando as equipes não foram preenchidas —,
+ * ou "⚽ Escala Arbitragem" quando as equipes não foram preenchidas —,
  * data/horário, competição/modalidade/local/função (só o que existir) e
  * valor + status em destaque. Nenhum campo vazio é exibido.
  */
@@ -44,7 +44,7 @@ fun JogoItem(jogo: Jogo, onClick: () -> Unit, modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.Top,
             ) {
                 Text(
-                    text = "⚽ ${jogo.confronto ?: "Jogo de arbitragem"}",
+                    text = "⚽ ${jogo.confronto ?: "Escala Arbitragem"}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,

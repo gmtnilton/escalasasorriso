@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SportsSoccer
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -29,6 +30,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,7 +41,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.meusjogos.arbitragem.core.util.DateUtils
+import com.meusjogos.arbitragem.ui.components.CampoDataTexto
 import com.meusjogos.arbitragem.ui.components.EmptyState
+import java.time.LocalDate
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -51,6 +56,9 @@ fun JogosListScreen(
 ) {
     val estado by viewModel.uiState.collectAsState()
     var mostrarFiltros by remember { mutableStateOf(false) }
+    var mostrarConfirmarLote by remember { mutableStateOf(false) }
+    var dataRecebimentoLoteTexto by remember { mutableStateOf(DateUtils.formatarData(LocalDate.now())) }
+    val pendentesFiltrados = estado.jogosFiltrados.count { !it.recebido }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -94,6 +102,26 @@ fun JogosListScreen(
                     Icon(Icons.Filled.FilterList, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Filtrar")
+                }
+            }
+        }
+
+        if (pendentesFiltrados > 0) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "$pendentesFiltrados ${if (pendentesFiltrados == 1) "jogo a receber" else "jogos a receber"} nesta lista",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                TextButton(onClick = {
+                    dataRecebimentoLoteTexto = DateUtils.formatarData(LocalDate.now())
+                    mostrarConfirmarLote = true
+                }) {
+                    Text("Marcar todos como recebidos")
                 }
             }
         }
@@ -152,6 +180,38 @@ fun JogosListScreen(
             onFuncaoChange = viewModel::atualizarFuncao,
             onLimpar = viewModel::limparFiltros,
             onFechar = { mostrarFiltros = false },
+        )
+    }
+
+    if (mostrarConfirmarLote) {
+        AlertDialog(
+            onDismissRequest = { mostrarConfirmarLote = false },
+            title = { Text("Marcar $pendentesFiltrados jogo(s) como recebido(s)?") },
+            text = {
+                Column {
+                    Text(
+                        "Isso marca como recebidos todos os jogos a receber que estão sendo exibidos " +
+                            "agora — considerando a pesquisa e os filtros aplicados. Por exemplo: filtre por " +
+                            "uma competição e receba todos os jogos dela de uma vez.",
+                    )
+                    CampoDataTexto(
+                        texto = dataRecebimentoLoteTexto,
+                        onTextoChange = { dataRecebimentoLoteTexto = it },
+                        label = "Data do recebimento",
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val data = DateUtils.parseData(dataRecebimentoLoteTexto) ?: LocalDate.now()
+                    viewModel.marcarFiltradosComoRecebido(data)
+                    mostrarConfirmarLote = false
+                }) { Text("Confirmar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarConfirmarLote = false }) { Text("Cancelar") }
+            },
         )
     }
 }

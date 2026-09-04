@@ -12,12 +12,15 @@ import com.meusjogos.arbitragem.core.model.FiltroJogos
 import com.meusjogos.arbitragem.core.model.FiltroPeriodo
 import com.meusjogos.arbitragem.core.model.FiltroStatus
 import com.meusjogos.arbitragem.core.model.Jogo
+import com.meusjogos.arbitragem.core.model.StatusPagamento
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 data class JogosListUiState(
     val carregando: Boolean = true,
@@ -75,5 +78,19 @@ class JogosListViewModel(private val repository: JogoRepository) : ViewModel() {
             competicao = null,
             funcao = null,
         )
+    }
+
+    /**
+     * Baixa em lote: marca como recebidos todos os jogos A RECEBER que
+     * estão sendo exibidos agora (considerando pesquisa e filtros — ex.:
+     * filtrar por uma competição e receber todos os jogos dela de uma vez).
+     * Jogos já recebidos na lista são ignorados.
+     */
+    fun marcarFiltradosComoRecebido(dataRecebimento: LocalDate = LocalDate.now()) {
+        val pendentes = uiState.value.jogosFiltrados.filter { it.statusPagamento == StatusPagamento.A_RECEBER }
+        if (pendentes.isEmpty()) return
+        viewModelScope.launch {
+            repository.marcarVariosComoRecebido(pendentes, dataRecebimento)
+        }
     }
 }

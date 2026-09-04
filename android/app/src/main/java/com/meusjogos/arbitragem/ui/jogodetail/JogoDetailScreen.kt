@@ -187,7 +187,7 @@ private fun DetalhesCard(jogo: Jogo) {
         Column(modifier = Modifier.padding(20.dp)) {
             // Cabeçalho: confronto (ou fallback), data/horário e valor + status em destaque.
             Text(
-                text = "⚽ ${jogo.confronto ?: "Jogo de arbitragem"}",
+                text = "⚽ ${jogo.confronto ?: "Escala Arbitragem"}",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
