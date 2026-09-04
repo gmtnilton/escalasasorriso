@@ -13,12 +13,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-/** Card de indicador financeiro do dashboard (TOTAL A RECEBER, RECEBIDO, GERAL...). */
+/**
+ * Card de indicador financeiro/numérico (TOTAL A RECEBER, RECEBIDO,
+ * GERAL, JOGOS APITADOS...) — número sempre com muito mais destaque que
+ * o rótulo, para os valores saltarem aos olhos (REGRA 14).
+ */
 @Composable
 fun StatCard(
     titulo: String,
     valor: String,
     modifier: Modifier = Modifier,
+    icone: String? = null,
     corValor: Color = MaterialTheme.colorScheme.onSurface,
     corFundo: Color = MaterialTheme.colorScheme.surfaceVariant,
     subtitulo: String? = null,
@@ -26,11 +31,11 @@ fun StatCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = corFundo),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(18.dp)) {
             Text(
-                text = titulo,
+                text = if (icone != null) "$icone $titulo" else titulo,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -39,7 +44,7 @@ fun StatCard(
                 style = MaterialTheme.typography.headlineMedium,
                 color = corValor,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = 6.dp),
             )
             if (subtitulo != null) {
                 Text(

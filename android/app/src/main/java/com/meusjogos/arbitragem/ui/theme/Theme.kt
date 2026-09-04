@@ -19,18 +19,18 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = VerdeCampo40,
+    primary = Navy30,
     onPrimary = Color.White,
-    primaryContainer = VerdeCampo90,
-    onPrimaryContainer = VerdeCampo10,
-    secondary = Dourado50,
+    primaryContainer = Navy90,
+    onPrimaryContainer = Navy10,
+    secondary = Slate40,
     onSecondary = Color.White,
-    secondaryContainer = Dourado90,
-    onSecondaryContainer = Dourado40,
-    tertiary = Azul40,
+    secondaryContainer = Slate90,
+    onSecondaryContainer = Navy10,
+    tertiary = Dourado40,
     onTertiary = Color.White,
-    tertiaryContainer = Azul90,
-    onTertiaryContainer = Azul40,
+    tertiaryContainer = Dourado90,
+    onTertiaryContainer = Dourado30,
     error = Vermelho40,
     errorContainer = Vermelho90,
     onError = Color.White,
@@ -41,25 +41,25 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Neutro10,
     surfaceVariant = Neutro95,
     onSurfaceVariant = Neutro20,
-    outline = Neutro20,
+    outline = Slate40,
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = VerdeCampo80,
-    onPrimary = VerdeCampo20,
-    primaryContainer = VerdeCampo30,
-    onPrimaryContainer = VerdeCampo90,
-    secondary = Dourado80,
-    onSecondary = VerdeCampo20,
-    secondaryContainer = Dourado40,
-    onSecondaryContainer = Dourado90,
-    tertiary = Azul80,
-    onTertiary = VerdeCampo20,
-    tertiaryContainer = Azul40,
-    onTertiaryContainer = Azul90,
+    primary = Navy80,
+    onPrimary = Navy20,
+    primaryContainer = Navy40,
+    onPrimaryContainer = Navy95,
+    secondary = Slate80,
+    onSecondary = Navy20,
+    secondaryContainer = Slate40,
+    onSecondaryContainer = Slate90,
+    tertiary = Dourado80,
+    onTertiary = Navy20,
+    tertiaryContainer = Dourado40,
+    onTertiaryContainer = Dourado90,
     error = Vermelho80,
     errorContainer = Vermelho40,
-    onError = VerdeCampo20,
+    onError = Navy20,
     onErrorContainer = Vermelho90,
     background = Neutro10,
     onBackground = Neutro90,
@@ -67,7 +67,7 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = Neutro90,
     surfaceVariant = Neutro20,
     onSurfaceVariant = Neutro90,
-    outline = Neutro90,
+    outline = Slate80,
 )
 
 /** Cores semânticas de status (recebido/a receber), acessíveis via [LocalStatusColors]. */
@@ -123,7 +123,11 @@ fun MeusJogosArbitragemTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            // primary é escuro no tema claro (navy) e claro no tema escuro
+            // (navy claro) — os ícones da status bar precisam do contraste
+            // oposto ao da própria cor de fundo da barra, por isso o
+            // booleano é o mesmo de darkTheme, não o seu inverso.
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }
 

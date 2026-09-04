@@ -1,5 +1,7 @@
 package com.meusjogos.arbitragem.ui.dashboard
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meusjogos.arbitragem.core.util.CurrencyUtils
+import com.meusjogos.arbitragem.ui.components.ProportionBar
 import com.meusjogos.arbitragem.ui.components.StatCard
 import com.meusjogos.arbitragem.ui.theme.LocalStatusColors
 
@@ -38,43 +41,37 @@ fun DashboardScreen(
             top = contentPadding.calculateTopPadding() + 16.dp,
             bottom = contentPadding.calculateBottomPadding() + 96.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
-            Text(
-                text = "Meus Jogos de Arbitragem",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = "Painel financeiro e de arbitragem",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp, bottom = 8.dp),
-            )
-        }
-
-        item {
-            StatCard(
-                titulo = "TOTAL GERAL",
-                valor = CurrencyUtils.formatar(estado.totalGeralCentavos),
-                corFundo = MaterialTheme.colorScheme.primaryContainer,
-                corValor = MaterialTheme.colorScheme.onPrimaryContainer,
-                subtitulo = "Recebido + a receber",
-            )
+            Column {
+                Text(
+                    text = "Olá, vamos para mais um jogo 👋",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "Controle dos seus jogos de arbitragem",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
         }
 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 StatCard(
-                    titulo = "🔴 A RECEBER",
+                    titulo = "A RECEBER",
+                    icone = "💰",
                     valor = CurrencyUtils.formatar(estado.totalAReceberCentavos),
                     corFundo = coresStatus.aReceberContainer,
                     corValor = coresStatus.aReceber,
                     modifier = Modifier.weight(1f),
                 )
                 StatCard(
-                    titulo = "🟢 RECEBIDO",
+                    titulo = "RECEBIDO",
+                    icone = "✅",
                     valor = CurrencyUtils.formatar(estado.totalRecebidoCentavos),
                     corFundo = coresStatus.recebidoContainer,
                     corValor = coresStatus.recebido,
@@ -85,14 +82,36 @@ fun DashboardScreen(
 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                ContadorCard(titulo = "Total de jogos", valor = estado.totalJogos, modifier = Modifier.weight(1f))
-                ContadorCard(titulo = "Recebidos", valor = estado.jogosRecebidos, modifier = Modifier.weight(1f))
-                ContadorCard(titulo = "A receber", valor = estado.jogosAReceber, modifier = Modifier.weight(1f))
+                StatCard(
+                    titulo = "TOTAL GERAL",
+                    icone = "📊",
+                    valor = CurrencyUtils.formatar(estado.totalGeralCentavos),
+                    corFundo = MaterialTheme.colorScheme.primaryContainer,
+                    corValor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.weight(1f),
+                )
+                StatCard(
+                    titulo = "JOGOS APITADOS",
+                    icone = "⚽",
+                    valor = "${estado.totalJogos}",
+                    subtitulo = if (estado.totalJogos == 1) "jogo" else "jogos",
+                    corFundo = MaterialTheme.colorScheme.tertiaryContainer,
+                    corValor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
 
         item {
-            ResumoPeriodoCard(
+            ResumoFinanceiroCard(
+                recebidoCentavos = estado.totalRecebidoCentavos,
+                aReceberCentavos = estado.totalAReceberCentavos,
+                totalCentavos = estado.totalGeralCentavos,
+            )
+        }
+
+        item {
+            ResumoMesAtualCard(
                 rotulo = estado.rotuloPeriodoAtual,
                 totalJogos = estado.resumoPeriodoAtual.totalJogos,
                 recebidoCentavos = estado.resumoPeriodoAtual.totalRecebidoCentavos,
@@ -104,56 +123,62 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun ContadorCard(titulo: String, valor: Int, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(text = valor.toString(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text(
-                text = titulo,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+private fun ResumoFinanceiroCard(recebidoCentavos: Long, aReceberCentavos: Long, totalCentavos: Long) {
+    val coresStatus = LocalStatusColors.current
+    val fracaoRecebida = if (totalCentavos > 0) recebidoCentavos.toFloat() / totalCentavos.toFloat() else 0f
+    val fracaoAnimada by animateFloatAsState(targetValue = fracaoRecebida, animationSpec = tween(500), label = "proporcao")
+
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Text("Resumo financeiro", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            ProportionBar(
+                fracaoRecebida = fracaoAnimada,
+                corRecebido = coresStatus.recebido,
+                corAReceber = coresStatus.aReceber,
+                modifier = Modifier.padding(top = 14.dp),
             )
+
+            LinhaResumo("A receber", CurrencyUtils.formatar(aReceberCentavos), coresStatus.aReceber, Modifier.padding(top = 16.dp))
+            LinhaResumo("Recebido", CurrencyUtils.formatar(recebidoCentavos), coresStatus.recebido)
+            LinhaResumo("Total geral", CurrencyUtils.formatar(totalCentavos), MaterialTheme.colorScheme.onSurface)
         }
     }
 }
 
 @Composable
-private fun ResumoPeriodoCard(
+private fun ResumoMesAtualCard(
     rotulo: String,
     totalJogos: Int,
     recebidoCentavos: Long,
     aReceberCentavos: Long,
     totalCentavos: Long,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = rotulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(
-                text = "$totalJogos ${if (totalJogos == 1) "jogo" else "jogos"}",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-            LinhaResumo("Recebido", CurrencyUtils.formatar(recebidoCentavos), LocalStatusColors.current.recebido)
-            LinhaResumo("A receber", CurrencyUtils.formatar(aReceberCentavos), LocalStatusColors.current.aReceber)
+    val coresStatus = LocalStatusColors.current
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Text("📅 $rotulo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "$totalJogos ${if (totalJogos == 1) "jogo" else "jogos"}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            LinhaResumo("Recebido", CurrencyUtils.formatar(recebidoCentavos), coresStatus.recebido, Modifier.padding(top = 12.dp))
+            LinhaResumo("A receber", CurrencyUtils.formatar(aReceberCentavos), coresStatus.aReceber)
             LinhaResumo("Total", CurrencyUtils.formatar(totalCentavos), MaterialTheme.colorScheme.onSurface)
         }
     }
 }
 
 @Composable
-private fun LinhaResumo(rotulo: String, valor: String, cor: Color) {
+private fun LinhaResumo(rotulo: String, valor: String, cor: Color, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        modifier = modifier.fillMaxWidth().padding(top = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(text = rotulo, style = MaterialTheme.typography.bodyMedium)
-        Text(text = valor, style = MaterialTheme.typography.bodyMedium, color = cor, fontWeight = FontWeight.SemiBold)
+        Text(text = valor, style = MaterialTheme.typography.bodyLarge, color = cor, fontWeight = FontWeight.Bold)
     }
 }

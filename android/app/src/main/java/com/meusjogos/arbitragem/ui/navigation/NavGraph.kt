@@ -1,5 +1,8 @@
 package com.meusjogos.arbitragem.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -86,6 +89,10 @@ fun MeusJogosNavGraph(repository: JogoRepository) {
         NavHost(
             navController = navController,
             startDestination = DestinoPrincipal.INICIO.rota,
+            enterTransition = { fadeIn(animationSpec = tween(220)) },
+            exitTransition = { fadeOut(animationSpec = tween(160)) },
+            popEnterTransition = { fadeIn(animationSpec = tween(220)) },
+            popExitTransition = { fadeOut(animationSpec = tween(160)) },
         ) {
             composable(DestinoPrincipal.INICIO.rota) {
                 val viewModel: DashboardViewModel = viewModel(

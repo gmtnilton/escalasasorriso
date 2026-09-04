@@ -2,36 +2,36 @@ package com.meusjogos.arbitragem.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta "campo + apito + dinheiro": verde para identidade do app,
-// dourado como cor de destaque, vermelho/verde para status de pagamento.
+// Identidade ESCALA S ARBITRAGEM: navy elegante como cor principal, dourado
+// como destaque (mesma dupla do ícone do app), tons neutros para fundos —
+// visual de aplicativo financeiro/profissional, sem cores exageradas.
 
-val VerdeCampo10 = Color(0xFF04160D)
-val VerdeCampo20 = Color(0xFF07301C)
-val VerdeCampo30 = Color(0xFF0B4A2A)
-val VerdeCampo40 = Color(0xFF12673B)
-val VerdeCampo50 = Color(0xFF1B7A4D)
-val VerdeCampo80 = Color(0xFFA7E8C1)
-val VerdeCampo90 = Color(0xFFC8F5D9)
-val VerdeCampo95 = Color(0xFFE3FAEC)
+val Navy10 = Color(0xFF050D1A)
+val Navy20 = Color(0xFF0A1B33)
+val Navy30 = Color(0xFF0F2A52)
+val Navy40 = Color(0xFF17406F)
+val Navy80 = Color(0xFFAEC6E8)
+val Navy90 = Color(0xFFD7E3F5)
+val Navy95 = Color(0xFFEAF1FB)
 
+val Dourado30 = Color(0xFF7A5B00)
 val Dourado40 = Color(0xFF8A6D00)
-val Dourado50 = Color(0xFFAB8900)
-val Dourado80 = Color(0xFFF2C94C)
-val Dourado90 = Color(0xFFFCECB8)
+val Dourado80 = Color(0xFFF0B429)
+val Dourado90 = Color(0xFFFBE7B8)
 
-val Azul40 = Color(0xFF2F6690)
-val Azul80 = Color(0xFFB9DDF6)
-val Azul90 = Color(0xFFDCEEFB)
+val Slate40 = Color(0xFF55647A)
+val Slate80 = Color(0xFFBEC8D9)
+val Slate90 = Color(0xFFDCE3EE)
 
 val Vermelho40 = Color(0xFFB3261E)
 val Vermelho80 = Color(0xFFF2B8B5)
 val Vermelho90 = Color(0xFFF9DEDC)
 
-val Neutro10 = Color(0xFF1A1C1A)
-val Neutro20 = Color(0xFF2E312E)
-val Neutro90 = Color(0xFFE2E3DE)
-val Neutro95 = Color(0xFFF1F1EC)
-val Neutro99 = Color(0xFFFAF9F5)
+val Neutro10 = Color(0xFF15181D)
+val Neutro20 = Color(0xFF282C33)
+val Neutro90 = Color(0xFFE3E5E9)
+val Neutro95 = Color(0xFFF1F2F5)
+val Neutro99 = Color(0xFFFAFAFB)
 
 /** Verde de destaque para o status "RECEBIDO" (🟢), fora da paleta tonal do Material. */
 val StatusRecebidoVerde = Color(0xFF2E9E5B)

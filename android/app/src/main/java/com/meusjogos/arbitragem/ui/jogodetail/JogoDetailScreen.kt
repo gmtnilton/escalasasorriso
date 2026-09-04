@@ -3,7 +3,6 @@ package com.meusjogos.arbitragem.ui.jogodetail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,7 +45,9 @@ import com.meusjogos.arbitragem.core.util.CurrencyUtils
 import com.meusjogos.arbitragem.core.util.DateUtils
 import com.meusjogos.arbitragem.ui.components.CampoDataTexto
 import com.meusjogos.arbitragem.ui.components.ConfirmarAcaoDialog
+import com.meusjogos.arbitragem.ui.components.SectionHeader
 import com.meusjogos.arbitragem.ui.components.StatusChip
+import com.meusjogos.arbitragem.ui.theme.LocalStatusColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,37 +94,44 @@ fun JogoDetailScreen(
             ) {
                 DetalhesCard(jogo)
 
-                Button(
-                    onClick = onEditar,
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text("✏️ EDITAR") }
-
-                if (jogo.statusPagamento == StatusPagamento.A_RECEBER) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Button(
-                        onClick = {
-                            dataRecebimentoEscolhida = DateUtils.formatarData(java.time.LocalDate.now())
-                            mostrarConfirmarRecebido = true
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
+                        onClick = onEditar,
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("💰 MARCAR COMO RECEBIDO") }
-                } else {
+                    ) { Text("✏️ Editar") }
+
+                    if (jogo.statusPagamento == StatusPagamento.A_RECEBER) {
+                        Button(
+                            onClick = {
+                                dataRecebimentoEscolhida = DateUtils.formatarData(java.time.LocalDate.now())
+                                mostrarConfirmarRecebido = true
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("💰 Marcar como recebido") }
+                    } else {
+                        OutlinedButton(
+                            onClick = viewModel::desfazerRecebimento,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("↩️ Desfazer recebimento") }
+                    }
+
                     OutlinedButton(
-                        onClick = viewModel::desfazerRecebimento,
+                        onClick = { viewModel.duplicar(onDuplicarConcluido) },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("↩️ DESFAZER RECEBIMENTO") }
+                    ) { Text("📋 Duplicar jogo") }
                 }
 
-                OutlinedButton(
-                    onClick = { viewModel.duplicar(onDuplicarConcluido) },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text("📋 DUPLICAR JOGO") }
+                Divider(modifier = Modifier.padding(top = 4.dp))
 
-                OutlinedButton(
+                TextButton(
                     onClick = { mostrarConfirmarExcluir = true },
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("🗑️ EXCLUIR") }
+                ) {
+                    Icon(Icons.Filled.DeleteOutline, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+                    Text("Excluir jogo")
+                }
             }
         }
     }
@@ -171,10 +180,31 @@ fun JogoDetailScreen(
 
 @Composable
 private fun DetalhesCard(jogo: Jogo) {
-    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    val coresStatus = LocalStatusColors.current
+    val corValor = if (jogo.recebido) coresStatus.recebido else MaterialTheme.colorScheme.onSurface
+
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            // Cabeçalho: confronto (ou fallback), data/horário e valor + status em destaque.
+            Text(
+                text = "⚽ ${jogo.confronto ?: "Jogo de arbitragem"}",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            val dataHora = if (jogo.horario != null) {
+                "${DateUtils.formatarData(jogo.data)} • ${DateUtils.formatarHora(jogo.horario)}"
+            } else {
+                DateUtils.formatarData(jogo.data)
+            }
+            Text(
+                text = dataHora,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -182,25 +212,53 @@ private fun DetalhesCard(jogo: Jogo) {
                     text = CurrencyUtils.formatar(jogo.valorCentavos),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
+                    color = corValor,
                 )
                 StatusChip(jogo.statusPagamento)
             }
 
-            Divider()
+            val competicaoInfo = listOfNotNull(
+                jogo.competicao?.takeIf(String::isNotBlank),
+                jogo.modalidade?.takeIf(String::isNotBlank),
+                jogo.categoria?.takeIf(String::isNotBlank),
+            )
+            if (competicaoInfo.isNotEmpty()) {
+                Secao(titulo = "Competição") {
+                    Text(competicaoInfo.joinToString(" • "), style = MaterialTheme.typography.bodyLarge)
+                }
+            }
 
-            LinhaDetalhe("Data", DateUtils.formatarData(jogo.data))
-            jogo.horario?.let { LinhaDetalhe("Horário", DateUtils.formatarHora(it)) }
-            jogo.confronto?.let { LinhaDetalhe("Confronto", it) }
-            jogo.competicao?.let { LinhaDetalhe("Competição", it) }
-            jogo.modalidade?.let { LinhaDetalhe("Modalidade", it) }
-            jogo.categoria?.let { LinhaDetalhe("Categoria", it) }
-            jogo.cidade?.let { LinhaDetalhe("Cidade", it) }
-            jogo.estadio?.let { LinhaDetalhe("Estádio / ginásio", it) }
-            jogo.funcao?.let { LinhaDetalhe("Função", it) }
-            jogo.dataRecebimento?.let { LinhaDetalhe("Recebido em", DateUtils.formatarData(it)) }
-            jogo.observacoes?.let { LinhaDetalhe("Observações", it) }
+            val localInfo = listOfNotNull(
+                jogo.cidade?.takeIf(String::isNotBlank),
+                jogo.estadio?.takeIf(String::isNotBlank),
+                jogo.funcao?.takeIf(String::isNotBlank)?.let { "Função: $it" },
+            )
+            if (localInfo.isNotEmpty()) {
+                Secao(titulo = "Local e arbitragem") {
+                    Text(localInfo.joinToString(" • "), style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+
+            jogo.dataRecebimento?.let { data ->
+                Secao(titulo = "Pagamento") {
+                    LinhaDetalhe("Recebido em", DateUtils.formatarData(data))
+                }
+            }
+
+            jogo.observacoes?.takeIf(String::isNotBlank)?.let { texto ->
+                Secao(titulo = "Observações") {
+                    Text(texto, style = MaterialTheme.typography.bodyLarge)
+                }
+            }
         }
     }
+}
+
+@Composable
+private fun Secao(titulo: String, conteudo: @Composable () -> Unit) {
+    Divider(modifier = Modifier.padding(top = 18.dp, bottom = 14.dp))
+    SectionHeader(titulo = titulo)
+    conteudo()
 }
 
 @Composable

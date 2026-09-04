@@ -1,5 +1,7 @@
 package com.meusjogos.arbitragem.ui.resumo
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -7,10 +9,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -21,10 +27,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meusjogos.arbitragem.core.util.CurrencyUtils
 import com.meusjogos.arbitragem.core.util.DateUtils
+import com.meusjogos.arbitragem.ui.components.ProportionBar
 import com.meusjogos.arbitragem.ui.resumo.charts.GraficoBarrasDuplasMensal
 import com.meusjogos.arbitragem.ui.resumo.charts.GraficoBarrasMensal
 import com.meusjogos.arbitragem.ui.resumo.charts.LegendaCor
@@ -60,24 +68,18 @@ fun ResumoScreen(
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        DateUtils.nomeMesAno(estado.anoSelecionado, estado.mesSelecionado),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    LinhaValor("Jogos", estado.resumoMensal.totalJogos.toString())
-                    LinhaValor("Recebido", CurrencyUtils.formatar(estado.resumoMensal.totalRecebidoCentavos), coresStatus.recebido)
-                    LinhaValor("A receber", CurrencyUtils.formatar(estado.resumoMensal.totalAReceberCentavos), coresStatus.aReceber)
-                    LinhaValor("Total", CurrencyUtils.formatar(estado.resumoMensal.totalGeralCentavos))
-                }
-            }
+            CardMesHero(
+                rotulo = DateUtils.nomeMesAno(estado.anoSelecionado, estado.mesSelecionado),
+                totalJogos = estado.resumoMensal.totalJogos,
+                recebidoCentavos = estado.resumoMensal.totalRecebidoCentavos,
+                aReceberCentavos = estado.resumoMensal.totalAReceberCentavos,
+                totalCentavos = estado.resumoMensal.totalGeralCentavos,
+            )
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
-                Column(modifier = Modifier.padding(16.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                Column(modifier = Modifier.padding(18.dp)) {
                     Text(
                         estado.anoSelecionado.toString(),
                         style = MaterialTheme.typography.titleLarge,
@@ -93,8 +95,8 @@ fun ResumoScreen(
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
-                Column(modifier = Modifier.padding(16.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                Column(modifier = Modifier.padding(18.dp)) {
                     Text("Estatísticas gerais", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     val stats = estado.estatisticasGerais
                     LinhaValor("Total de jogos", stats.totalJogos.toString())
@@ -110,8 +112,8 @@ fun ResumoScreen(
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
-                Column(modifier = Modifier.padding(16.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                Column(modifier = Modifier.padding(18.dp)) {
                     Text(
                         "Jogos por mês — ${estado.anoSelecionado}",
                         style = MaterialTheme.typography.titleMedium,
@@ -127,8 +129,8 @@ fun ResumoScreen(
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
-                Column(modifier = Modifier.padding(16.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                Column(modifier = Modifier.padding(18.dp)) {
                     Text(
                         "Recebido x A receber por mês — ${estado.anoSelecionado}",
                         style = MaterialTheme.typography.titleMedium,
@@ -151,10 +153,69 @@ fun ResumoScreen(
     }
 }
 
+/** Card em destaque do mês selecionado — valor total com muito mais peso visual, e a proporção recebido/a receber. */
 @Composable
-private fun LinhaValor(rotulo: String, valor: String, cor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface) {
+private fun CardMesHero(
+    rotulo: String,
+    totalJogos: Int,
+    recebidoCentavos: Long,
+    aReceberCentavos: Long,
+    totalCentavos: Long,
+) {
+    val coresStatus = LocalStatusColors.current
+    val fracaoRecebida = if (totalCentavos > 0) recebidoCentavos.toFloat() / totalCentavos.toFloat() else 0f
+    val fracaoAnimada by animateFloatAsState(targetValue = fracaoRecebida, animationSpec = tween(500), label = "proporcao-mes")
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    "📅 $rotulo",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Text(
+                    "$totalJogos ${if (totalJogos == 1) "jogo" else "jogos"}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+
+            Text(
+                text = CurrencyUtils.formatar(totalCentavos),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+
+            ProportionBar(
+                fracaoRecebida = fracaoAnimada,
+                corRecebido = coresStatus.recebido,
+                corAReceber = coresStatus.aReceber,
+                modifier = Modifier.padding(top = 14.dp),
+            )
+
+            LinhaValor("Recebido", CurrencyUtils.formatar(recebidoCentavos), coresStatus.recebido, Modifier.padding(top = 14.dp))
+            LinhaValor("A receber", CurrencyUtils.formatar(aReceberCentavos), coresStatus.aReceber)
+        }
+    }
+}
+
+@Composable
+private fun LinhaValor(
+    rotulo: String,
+    valor: String,
+    cor: Color = MaterialTheme.colorScheme.onSurface,
+    modifier: Modifier = Modifier,
+) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+        modifier = modifier.fillMaxWidth().padding(top = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(rotulo, style = MaterialTheme.typography.bodyMedium)
@@ -165,7 +226,10 @@ private fun LinhaValor(rotulo: String, valor: String, cor: androidx.compose.ui.g
 @Composable
 private fun SeletorMes(mesSelecionado: Int, onSelecionar: (Int) -> Unit) {
     var expandido by remember { mutableStateOf(false) }
-    OutlinedButton(onClick = { expandido = true }) { Text(DateUtils.nomeMes(mesSelecionado)) }
+    OutlinedButton(onClick = { expandido = true }, shape = RoundedCornerShape(16.dp)) {
+        Icon(Icons.Filled.CalendarMonth, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+        Text(DateUtils.nomeMes(mesSelecionado))
+    }
     DropdownMenu(expanded = expandido, onDismissRequest = { expandido = false }) {
         (1..12).forEach { mes ->
             DropdownMenuItem(text = { Text(DateUtils.nomeMes(mes)) }, onClick = { onSelecionar(mes); expandido = false })
@@ -176,7 +240,9 @@ private fun SeletorMes(mesSelecionado: Int, onSelecionar: (Int) -> Unit) {
 @Composable
 private fun SeletorAno(anoSelecionado: Int, anosDisponiveis: List<Int>, onSelecionar: (Int) -> Unit) {
     var expandido by remember { mutableStateOf(false) }
-    OutlinedButton(onClick = { expandido = true }) { Text(anoSelecionado.toString()) }
+    OutlinedButton(onClick = { expandido = true }, shape = RoundedCornerShape(16.dp)) {
+        Text(anoSelecionado.toString())
+    }
     DropdownMenu(expanded = expandido, onDismissRequest = { expandido = false }) {
         anosDisponiveis.forEach { ano ->
             DropdownMenuItem(text = { Text(ano.toString()) }, onClick = { onSelecionar(ano); expandido = false })

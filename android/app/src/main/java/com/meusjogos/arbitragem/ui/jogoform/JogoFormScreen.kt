@@ -3,7 +3,6 @@ package com.meusjogos.arbitragem.ui.jogoform
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,6 +45,7 @@ import com.meusjogos.arbitragem.ui.components.CampoComOpcoes
 import com.meusjogos.arbitragem.ui.components.CampoDataTexto
 import com.meusjogos.arbitragem.ui.components.CampoHoraTexto
 import com.meusjogos.arbitragem.ui.components.CampoValorMonetario
+import com.meusjogos.arbitragem.ui.components.SectionHeader
 
 private val COMPETICOES_PADRAO = listOf("Campeonato Estadual", "Campeonato Municipal", "Copa", "Amistoso", "Base", "Feminino", "Outro")
 private val CATEGORIAS_PADRAO = listOf("Profissional", "Amador", "Sub-20", "Sub-17", "Sub-15", "Feminino", "Outro")
@@ -97,7 +97,7 @@ fun JogoFormScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
                 "Só data e valor são obrigatórios — complete o resto quando quiser.",
@@ -105,143 +105,178 @@ fun JogoFormScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                CampoDataTexto(
-                    texto = estado.dataTexto,
-                    onTextoChange = viewModel::atualizarData,
-                    isError = estado.erroData != null,
-                    supportingText = estado.erroData,
-                    modifier = Modifier.weight(1.3f),
-                )
-                CampoHoraTexto(
-                    texto = estado.horarioTexto,
-                    onTextoChange = viewModel::atualizarHorario,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-
-            CampoComOpcoes(
-                valor = estado.competicao,
-                onValorChange = viewModel::atualizarCompeticao,
-                label = "Competição",
-                opcoes = COMPETICOES_PADRAO,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            CampoComOpcoes(
-                valor = estado.modalidade,
-                onValorChange = viewModel::atualizarModalidade,
-                label = "Modalidade",
-                opcoes = MODALIDADES_PADRAO,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            CampoComOpcoes(
-                valor = estado.categoria,
-                onValorChange = viewModel::atualizarCategoria,
-                label = "Categoria",
-                opcoes = CATEGORIAS_PADRAO,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            OutlinedTextField(
-                value = estado.equipeMandante,
-                onValueChange = viewModel::atualizarEquipeMandante,
-                label = { Text("Equipe mandante") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            OutlinedTextField(
-                value = estado.equipeVisitante,
-                onValueChange = viewModel::atualizarEquipeVisitante,
-                label = { Text("Equipe visitante") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            CampoComOpcoes(
-                valor = estado.cidade,
-                onValorChange = viewModel::atualizarCidade,
-                label = "Cidade",
-                opcoes = CIDADES_PADRAO,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            OutlinedTextField(
-                value = estado.estadio,
-                onValueChange = viewModel::atualizarEstadio,
-                label = { Text("Estádio / ginásio") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            CampoComOpcoes(
-                valor = estado.funcao,
-                onValorChange = viewModel::atualizarFuncao,
-                label = "Função",
-                opcoes = FUNCOES_PADRAO,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            CampoValorMonetario(
-                valorCentavos = estado.valorCentavos,
-                onValorChange = viewModel::atualizarValor,
-                isError = estado.erroValor != null,
-                supportingText = estado.erroValor,
-                label = if (estado.quantidadePartidas > 1) "Valor por partida" else "Valor",
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            if (estado.permiteVariasPartidas) {
-                CampoQuantidadePartidas(
-                    quantidade = estado.quantidadePartidas,
-                    onQuantidadeChange = viewModel::atualizarQuantidadePartidas,
-                    valorTotalFormatado = CurrencyUtils.formatar(estado.valorTotalCentavos),
-                )
-            }
-
-            Column {
-                Text("Status", style = MaterialTheme.typography.labelLarge)
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
-                    SegmentedButton(
-                        selected = estado.status == StatusPagamento.A_RECEBER,
-                        onClick = { viewModel.atualizarStatus(StatusPagamento.A_RECEBER) },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                    ) { Text("🔴 A receber") }
-                    SegmentedButton(
-                        selected = estado.status == StatusPagamento.RECEBIDO,
-                        onClick = { viewModel.atualizarStatus(StatusPagamento.RECEBIDO) },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                    ) { Text("🟢 Recebido") }
+            FormSection(titulo = "Informações do jogo") {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    CampoDataTexto(
+                        texto = estado.dataTexto,
+                        onTextoChange = viewModel::atualizarData,
+                        isError = estado.erroData != null,
+                        supportingText = estado.erroData,
+                        modifier = Modifier.weight(1.3f),
+                    )
+                    CampoHoraTexto(
+                        texto = estado.horarioTexto,
+                        onTextoChange = viewModel::atualizarHorario,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
-            }
 
-            if (estado.status == StatusPagamento.RECEBIDO) {
-                CampoDataTexto(
-                    texto = estado.dataRecebimentoTexto,
-                    onTextoChange = viewModel::atualizarDataRecebimento,
-                    label = "Data do recebimento",
-                    obrigatorio = false,
+                CampoComOpcoes(
+                    valor = estado.competicao,
+                    onValorChange = viewModel::atualizarCompeticao,
+                    label = "Competição",
+                    opcoes = COMPETICOES_PADRAO,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                CampoComOpcoes(
+                    valor = estado.modalidade,
+                    onValorChange = viewModel::atualizarModalidade,
+                    label = "Modalidade",
+                    opcoes = MODALIDADES_PADRAO,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                CampoComOpcoes(
+                    valor = estado.categoria,
+                    onValorChange = viewModel::atualizarCategoria,
+                    label = "Categoria",
+                    opcoes = CATEGORIAS_PADRAO,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
 
-            OutlinedTextField(
-                value = estado.observacoes,
-                onValueChange = viewModel::atualizarObservacoes,
-                label = { Text("Observações") },
-                minLines = 3,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            FormSection(titulo = "Equipes", subtitulo = "Opcional — preencha se já souber os times.") {
+                OutlinedTextField(
+                    value = estado.equipeMandante,
+                    onValueChange = viewModel::atualizarEquipeMandante,
+                    label = { Text("Equipe mandante") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                OutlinedTextField(
+                    value = estado.equipeVisitante,
+                    onValueChange = viewModel::atualizarEquipeVisitante,
+                    label = { Text("Equipe visitante") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            FormSection(titulo = "Arbitragem") {
+                CampoComOpcoes(
+                    valor = estado.cidade,
+                    onValorChange = viewModel::atualizarCidade,
+                    label = "Cidade",
+                    opcoes = CIDADES_PADRAO,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                OutlinedTextField(
+                    value = estado.estadio,
+                    onValueChange = viewModel::atualizarEstadio,
+                    label = { Text("Estádio / ginásio") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                CampoComOpcoes(
+                    valor = estado.funcao,
+                    onValorChange = viewModel::atualizarFuncao,
+                    label = "Função",
+                    opcoes = FUNCOES_PADRAO,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            FormSection(titulo = "Pagamento") {
+                CampoValorMonetario(
+                    valorCentavos = estado.valorCentavos,
+                    onValorChange = viewModel::atualizarValor,
+                    isError = estado.erroValor != null,
+                    supportingText = estado.erroValor,
+                    label = if (estado.quantidadePartidas > 1) "Valor por partida" else "Valor",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                if (estado.permiteVariasPartidas) {
+                    CampoQuantidadePartidas(
+                        quantidade = estado.quantidadePartidas,
+                        onQuantidadeChange = viewModel::atualizarQuantidadePartidas,
+                        valorTotalFormatado = CurrencyUtils.formatar(estado.valorTotalCentavos),
+                    )
+                }
+
+                Column {
+                    Text("Status", style = MaterialTheme.typography.labelLarge)
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                        SegmentedButton(
+                            selected = estado.status == StatusPagamento.A_RECEBER,
+                            onClick = { viewModel.atualizarStatus(StatusPagamento.A_RECEBER) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                        ) { Text("🔴 A receber") }
+                        SegmentedButton(
+                            selected = estado.status == StatusPagamento.RECEBIDO,
+                            onClick = { viewModel.atualizarStatus(StatusPagamento.RECEBIDO) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                        ) { Text("🟢 Recebido") }
+                    }
+                }
+
+                if (estado.status == StatusPagamento.RECEBIDO) {
+                    CampoDataTexto(
+                        texto = estado.dataRecebimentoTexto,
+                        onTextoChange = viewModel::atualizarDataRecebimento,
+                        label = "Data do recebimento",
+                        obrigatorio = false,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            FormSection(titulo = "Observações") {
+                OutlinedTextField(
+                    value = estado.observacoes,
+                    onValueChange = viewModel::atualizarObservacoes,
+                    label = { Text("Observações") },
+                    minLines = 3,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
 
             Button(
                 onClick = viewModel::salvar,
                 enabled = !estado.salvando,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 24.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 24.dp),
             ) {
-                Text(if (estado.salvando) "Salvando..." else "SALVAR")
+                Text(if (estado.salvando) "Salvando..." else "Salvar")
             }
+        }
+    }
+}
+
+/** Agrupa um bloco do formulário em um card com título — organiza o cadastro em seções claras. */
+@Composable
+private fun FormSection(
+    titulo: String,
+    subtitulo: String? = null,
+    conteudo: @Composable () -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column {
+                SectionHeader(titulo = titulo)
+                if (subtitulo != null) {
+                    Text(
+                        text = subtitulo,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
+                }
+            }
+            conteudo()
         }
     }
 }

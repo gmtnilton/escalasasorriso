@@ -6,13 +6,26 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-/** Tipografia padrão do Material3 (fonte do sistema), com pesos ajustados para números/valores. */
+/**
+ * Tipografia padrão do Material3 (fonte do sistema). [headlineLarge] é
+ * reservado para o "número principal" de cada tela (o valor em destaque,
+ * como o Total Geral do dashboard) — bem maior e mais pesado que qualquer
+ * outro texto, para os valores financeiros sempre saltarem aos olhos.
+ */
 val MeusJogosTypography = Typography(
+    headlineLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 36.sp,
+        lineHeight = 42.sp,
+        letterSpacing = (-0.5).sp,
+    ),
     headlineMedium = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,
         fontSize = 28.sp,
         lineHeight = 34.sp,
+        letterSpacing = (-0.25).sp,
     ),
     titleLarge = TextStyle(
         fontFamily = FontFamily.Default,
@@ -46,8 +59,9 @@ val MeusJogosTypography = Typography(
     ),
     labelMedium = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 12.sp,
         lineHeight = 16.sp,
+        letterSpacing = 0.4.sp,
     ),
 )

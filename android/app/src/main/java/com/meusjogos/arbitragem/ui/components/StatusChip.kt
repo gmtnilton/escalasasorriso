@@ -29,7 +29,7 @@ fun StatusChip(status: StatusPagamento, modifier: Modifier = Modifier) {
     ) {
         Text(
             text = "$emoji $texto",
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             color = corTexto,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
