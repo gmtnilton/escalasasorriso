@@ -3,6 +3,8 @@ package com.meusjogos.arbitragem.ui.jogos
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meusjogos.arbitragem.core.logic.competicoesDisponiveis
+import com.meusjogos.arbitragem.core.logic.contarPorCidade
+import com.meusjogos.arbitragem.core.logic.contarPorModalidade
 import com.meusjogos.arbitragem.core.logic.filtrarEPesquisar
 import com.meusjogos.arbitragem.core.logic.funcoesDisponiveis
 import com.meusjogos.arbitragem.core.logic.ordenarMaisRecentePrimeiro
@@ -24,6 +26,8 @@ data class JogosListUiState(
     val competicoesDisponiveis: List<String> = emptyList(),
     val funcoesDisponiveis: List<String> = emptyList(),
     val totalSemFiltro: Int = 0,
+    val contagemPorCidade: List<Pair<String, Int>> = emptyList(),
+    val contagemPorModalidade: List<Pair<String, Int>> = emptyList(),
 )
 
 class JogosListViewModel(private val repository: JogoRepository) : ViewModel() {
@@ -31,13 +35,16 @@ class JogosListViewModel(private val repository: JogoRepository) : ViewModel() {
     private val filtro = MutableStateFlow(FiltroJogos())
 
     val uiState: StateFlow<JogosListUiState> = combine(repository.observarJogos(), filtro) { jogos, filtroAtual ->
+        val jogosFiltrados = jogos.filtrarEPesquisar(filtroAtual).ordenarMaisRecentePrimeiro()
         JogosListUiState(
             carregando = false,
-            jogosFiltrados = jogos.filtrarEPesquisar(filtroAtual).ordenarMaisRecentePrimeiro(),
+            jogosFiltrados = jogosFiltrados,
             filtro = filtroAtual,
             competicoesDisponiveis = jogos.competicoesDisponiveis(),
             funcoesDisponiveis = jogos.funcoesDisponiveis(),
             totalSemFiltro = jogos.size,
+            contagemPorCidade = jogosFiltrados.contarPorCidade(),
+            contagemPorModalidade = jogosFiltrados.contarPorModalidade(),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), JogosListUiState())
 

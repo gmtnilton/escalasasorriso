@@ -1,6 +1,7 @@
 package com.meusjogos.arbitragem.ui.jogos
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -25,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -95,6 +98,16 @@ fun JogosListScreen(
             }
         }
 
+        if (estado.jogosFiltrados.isNotEmpty() && (estado.contagemPorCidade.isNotEmpty() || estado.contagemPorModalidade.isNotEmpty())) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                LinhaContagem(titulo = "Por cidade", itens = estado.contagemPorCidade)
+                LinhaContagem(titulo = "Por modalidade", itens = estado.contagemPorModalidade)
+            }
+        }
+
         if (estado.jogosFiltrados.isEmpty()) {
             if (estado.totalSemFiltro == 0) {
                 EmptyState(
@@ -140,5 +153,34 @@ fun JogosListScreen(
             onLimpar = viewModel::limparFiltros,
             onFechar = { mostrarFiltros = false },
         )
+    }
+}
+
+/** Contagem de jogos por cidade/modalidade, em chips horizontalmente roláveis. */
+@Composable
+private fun LinhaContagem(titulo: String, itens: List<Pair<String, Int>>) {
+    if (itens.isEmpty()) return
+    Column {
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 6.dp).horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            itens.forEach { (nome, quantidade) ->
+                Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surfaceVariant) {
+                    Text(
+                        text = "$nome · $quantidade",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    )
+                }
+            }
+        }
     }
 }

@@ -1,5 +1,7 @@
 package com.meusjogos.arbitragem.core
 
+import com.meusjogos.arbitragem.core.logic.contarPorCidade
+import com.meusjogos.arbitragem.core.logic.contarPorModalidade
 import com.meusjogos.arbitragem.core.logic.estatisticas
 import com.meusjogos.arbitragem.core.logic.marcarComoRecebido
 import com.meusjogos.arbitragem.core.logic.resumoDoAno
@@ -93,5 +95,34 @@ class TotaisTest {
         assertEquals(0, stats.totalJogos)
         assertEquals(0L, stats.maiorValorCentavos)
         assertEquals(0L, stats.mediaPorJogoCentavos)
+    }
+
+    @Test
+    fun `contagem por cidade ignora vazios e ordena da mais frequente para a menos`() {
+        val jogos = listOf(
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, cidade = "Sorriso"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, cidade = "Sorriso"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, cidade = "Sinop"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, cidade = null),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, cidade = "  "),
+        )
+
+        val contagem = jogos.contarPorCidade()
+
+        assertEquals(listOf("Sorriso" to 2, "Sinop" to 1), contagem)
+    }
+
+    @Test
+    fun `contagem por modalidade ignora vazios e ordena da mais frequente para a menos`() {
+        val jogos = listOf(
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, modalidade = "Futsal"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, modalidade = "Futebol de Campo"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, modalidade = "Futebol de Campo"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, modalidade = "Futebol de Campo"),
+        )
+
+        val contagem = jogos.contarPorModalidade()
+
+        assertEquals(listOf("Futebol de Campo" to 3, "Futsal" to 1), contagem)
     }
 }

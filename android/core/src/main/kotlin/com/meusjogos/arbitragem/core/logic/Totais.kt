@@ -94,6 +94,22 @@ fun List<Jogo>.cidadesDisponiveis(): List<String> =
 fun List<Jogo>.modalidadesDisponiveis(): List<String> =
     mapNotNull { it.modalidade?.takeIf(String::isNotBlank) }.distinct().sorted()
 
+/** Quantidade de jogos por cidade (não vazias), da mais frequente para a menos. */
+fun List<Jogo>.contarPorCidade(): List<Pair<String, Int>> =
+    mapNotNull { it.cidade?.takeIf(String::isNotBlank) }
+        .groupingBy { it }
+        .eachCount()
+        .toList()
+        .sortedByDescending { it.second }
+
+/** Quantidade de jogos por modalidade (não vazias), da mais frequente para a menos. */
+fun List<Jogo>.contarPorModalidade(): List<Pair<String, Int>> =
+    mapNotNull { it.modalidade?.takeIf(String::isNotBlank) }
+        .groupingBy { it }
+        .eachCount()
+        .toList()
+        .sortedByDescending { it.second }
+
 /**
  * Cria a cópia de um jogo para a função "Duplicar jogo".
  *

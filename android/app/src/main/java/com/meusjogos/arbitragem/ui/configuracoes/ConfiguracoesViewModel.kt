@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meusjogos.arbitragem.data.backup.BackupManager
 import com.meusjogos.arbitragem.data.backup.ExportManager
+import com.meusjogos.arbitragem.data.preferences.ModoTema
+import com.meusjogos.arbitragem.data.preferences.TemaPreferences
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,13 +19,20 @@ data class ConfiguracoesUiState(
     val mensagemErro: Boolean = false,
 )
 
-class ConfiguracoesViewModel(private val repository: JogoRepository) : ViewModel() {
+class ConfiguracoesViewModel(
+    private val repository: JogoRepository,
+    private val temaPreferences: TemaPreferences,
+) : ViewModel() {
 
     private val backupManager = BackupManager(repository)
     private val exportManager = ExportManager(repository)
 
     private val _uiState = MutableStateFlow(ConfiguracoesUiState())
     val uiState: StateFlow<ConfiguracoesUiState> = _uiState.asStateFlow()
+
+    val modoTema: StateFlow<ModoTema> = temaPreferences.modo
+
+    fun definirModoTema(modo: ModoTema) = temaPreferences.definirModo(modo)
 
     suspend fun gerarConteudoBackup(): String = backupManager.gerarBackup()
 

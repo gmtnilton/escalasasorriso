@@ -17,12 +17,17 @@ import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -38,11 +43,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.meusjogos.arbitragem.data.preferences.ModoTema
+import com.meusjogos.arbitragem.ui.components.SectionHeader
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfiguracoesScreen(
     viewModel: ConfiguracoesViewModel,
@@ -50,6 +58,7 @@ fun ConfiguracoesScreen(
     contentPadding: PaddingValues = PaddingValues(),
 ) {
     val estado by viewModel.uiState.collectAsState()
+    val modoTema by viewModel.modoTema.collectAsState()
     val context = LocalContext.current
     val escopo = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -127,6 +136,31 @@ fun ConfiguracoesScreen(
 
             item {
                 Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        SectionHeader(titulo = "Aparência")
+                        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                            SegmentedButton(
+                                selected = modoTema == ModoTema.CLARO,
+                                onClick = { viewModel.definirModoTema(ModoTema.CLARO) },
+                                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
+                            ) { Text("☀️ Claro") }
+                            SegmentedButton(
+                                selected = modoTema == ModoTema.ESCURO,
+                                onClick = { viewModel.definirModoTema(ModoTema.ESCURO) },
+                                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
+                            ) { Text("🌙 Escuro") }
+                            SegmentedButton(
+                                selected = modoTema == ModoTema.SISTEMA,
+                                onClick = { viewModel.definirModoTema(ModoTema.SISTEMA) },
+                                shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
+                            ) { Text("⚙️ Sistema") }
+                        }
+                    }
+                }
+            }
+
+            item {
+                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
                     Column {
                         ListItem(
                             headlineContent = { Text("Fazer backup") },
@@ -162,11 +196,18 @@ fun ConfiguracoesScreen(
 
             item {
                 Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
-                    ListItem(
-                        headlineContent = { Text("Meus Jogos de Arbitragem") },
-                        supportingContent = { Text("Versão 1.0.0 — funciona 100% offline, seus dados ficam só no aparelho.") },
-                        leadingContent = { Icon(Icons.Filled.Info, contentDescription = null) },
-                    )
+                    Column {
+                        ListItem(
+                            headlineContent = { Text("Escalas Árbitros") },
+                            supportingContent = { Text("Versão 1.0.0 — funciona 100% offline, seus dados ficam só no aparelho.") },
+                            leadingContent = { Icon(Icons.Filled.Info, contentDescription = null) },
+                        )
+                        ListItem(
+                            headlineContent = { Text("Proprietário do sistema") },
+                            supportingContent = { Text("NILTON RODRIGO RIBEIRO") },
+                            leadingContent = { Icon(Icons.Filled.Person, contentDescription = null) },
+                        )
+                    }
                 }
             }
         }

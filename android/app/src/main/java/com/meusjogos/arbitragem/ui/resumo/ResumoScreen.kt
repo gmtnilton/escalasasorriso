@@ -1,5 +1,8 @@
 package com.meusjogos.arbitragem.ui.resumo
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -12,11 +15,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -25,9 +30,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meusjogos.arbitragem.core.util.CurrencyUtils
@@ -37,6 +45,7 @@ import com.meusjogos.arbitragem.ui.resumo.charts.GraficoBarrasDuplasMensal
 import com.meusjogos.arbitragem.ui.resumo.charts.GraficoBarrasMensal
 import com.meusjogos.arbitragem.ui.resumo.charts.LegendaCor
 import com.meusjogos.arbitragem.ui.theme.LocalStatusColors
+import kotlinx.coroutines.launch
 
 @Composable
 fun ResumoScreen(
@@ -46,6 +55,17 @@ fun ResumoScreen(
 ) {
     val estado by viewModel.uiState.collectAsState()
     val coresStatus = LocalStatusColors.current
+    val context = LocalContext.current
+    val escopo = rememberCoroutineScope()
+
+    val lancadorExportarPdf = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri: Uri? ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        escopo.launch {
+            context.contentResolver.openOutputStream(uri)?.use { saida ->
+                viewModel.gerarRelatorioPdf(saida)
+            }
+        }
+    }
 
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
@@ -57,7 +77,16 @@ fun ResumoScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
-            Text("📊 Resumo", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("📊 Resumo", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                IconButton(onClick = { lancadorExportarPdf.launch(viewModel.nomeArquivoPdf()) }) {
+                    Icon(Icons.Filled.PictureAsPdf, contentDescription = "Exportar relatório em PDF")
+                }
+            }
         }
 
         item {

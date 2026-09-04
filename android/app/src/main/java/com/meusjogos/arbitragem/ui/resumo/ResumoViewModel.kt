@@ -11,6 +11,8 @@ import com.meusjogos.arbitragem.core.model.Estatisticas
 import com.meusjogos.arbitragem.core.model.PontoMensal
 import com.meusjogos.arbitragem.core.model.ResumoAnual
 import com.meusjogos.arbitragem.core.model.ResumoPeriodo
+import com.meusjogos.arbitragem.core.util.DateUtils
+import com.meusjogos.arbitragem.data.backup.PdfReportGenerator
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import java.io.OutputStream
 import java.time.LocalDate
 
 data class SelecaoPeriodo(val ano: Int, val mes: Int)
@@ -34,6 +37,8 @@ data class ResumoUiState(
 )
 
 class ResumoViewModel(repository: JogoRepository) : ViewModel() {
+
+    private val pdfGenerator = PdfReportGenerator()
 
     private val selecao = MutableStateFlow(SelecaoPeriodo(LocalDate.now().year, LocalDate.now().monthValue))
 
@@ -53,4 +58,19 @@ class ResumoViewModel(repository: JogoRepository) : ViewModel() {
     fun selecionarMes(mes: Int) = selecao.update { it.copy(mes = mes) }
 
     fun selecionarAno(ano: Int) = selecao.update { it.copy(ano = ano) }
+
+    fun nomeArquivoPdf(): String = PdfReportGenerator.nomeArquivoSugerido()
+
+    /** Gera o relatório de resumo (mês selecionado, ano, estatísticas) em PDF. */
+    suspend fun gerarRelatorioPdf(saida: OutputStream) {
+        val estado = uiState.value
+        pdfGenerator.gerar(
+            rotuloMes = DateUtils.nomeMesAno(estado.anoSelecionado, estado.mesSelecionado),
+            resumoMensal = estado.resumoMensal,
+            resumoAnual = estado.resumoAnual,
+            estatisticas = estado.estatisticasGerais,
+            serieMensal = estado.serieMensal,
+            saida = saida,
+        )
+    }
 }
