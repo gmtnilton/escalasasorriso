@@ -1,6 +1,7 @@
 package com.meusjogos.arbitragem.ui.jogos
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.meusjogos.arbitragem.core.logic.jogosDaCidade
 import com.meusjogos.arbitragem.core.util.DateUtils
 import com.meusjogos.arbitragem.ui.components.CampoDataTexto
 import com.meusjogos.arbitragem.ui.components.EmptyState
@@ -57,6 +59,7 @@ fun JogosListScreen(
     val estado by viewModel.uiState.collectAsState()
     var mostrarFiltros by remember { mutableStateOf(false) }
     var mostrarConfirmarLote by remember { mutableStateOf(false) }
+    var cidadeSelecionada by remember { mutableStateOf<String?>(null) }
     var dataRecebimentoLoteTexto by remember { mutableStateOf(DateUtils.formatarData(LocalDate.now())) }
     val pendentesFiltrados = estado.jogosFiltrados.count { !it.recebido }
 
@@ -131,7 +134,11 @@ fun JogosListScreen(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                LinhaContagem(titulo = "Por cidade", itens = estado.contagemPorCidade)
+                LinhaContagem(
+                    titulo = "Por cidade",
+                    itens = estado.contagemPorCidade,
+                    onClick = { cidade -> cidadeSelecionada = cidade },
+                )
                 LinhaContagem(titulo = "Por modalidade", itens = estado.contagemPorModalidade)
             }
         }
@@ -214,11 +221,22 @@ fun JogosListScreen(
             },
         )
     }
+
+    val cidade = cidadeSelecionada
+    if (cidade != null) {
+        CidadeDetalheSheet(
+            cidade = cidade,
+            jogos = estado.jogosFiltrados.jogosDaCidade(cidade),
+            onJogoClick = onJogoClick,
+            onFechar = { cidadeSelecionada = null },
+        )
+    }
 }
 
-/** Contagem de jogos por cidade/modalidade, em chips horizontalmente roláveis. */
+/** Contagem de jogos por cidade/modalidade, em chips horizontalmente roláveis — quando
+ * [onClick] é informado (cidade), tocar num chip abre o detalhe daquele grupo. */
 @Composable
-private fun LinhaContagem(titulo: String, itens: List<Pair<String, Int>>) {
+private fun LinhaContagem(titulo: String, itens: List<Pair<String, Int>>, onClick: ((String) -> Unit)? = null) {
     if (itens.isEmpty()) return
     Column {
         Text(
@@ -232,7 +250,12 @@ private fun LinhaContagem(titulo: String, itens: List<Pair<String, Int>>) {
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             itens.forEach { (nome, quantidade) ->
-                Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.surfaceVariant) {
+                val chipModifier = if (onClick != null) Modifier.clickable { onClick(nome) } else Modifier
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = chipModifier,
+                ) {
                     Text(
                         text = "$nome · $quantidade",
                         style = MaterialTheme.typography.labelMedium,

@@ -86,21 +86,48 @@ fun List<Jogo>.competicoesDisponiveis(): List<String> =
 fun List<Jogo>.funcoesDisponiveis(): List<String> =
     mapNotNull { it.funcao?.takeIf(String::isNotBlank) }.distinct().sorted()
 
-/** Todas as cidades distintas já cadastradas (não vazias), em ordem alfabética. */
+/** Todas as cidades distintas já cadastradas (não vazias), em ordem alfabética — cidades que
+ * só diferem por maiúsculas/minúsculas ou espaços nas pontas contam como uma só (ver
+ * [agruparCidadesIgnorandoCaixa]). */
 fun List<Jogo>.cidadesDisponiveis(): List<String> =
-    mapNotNull { it.cidade?.takeIf(String::isNotBlank) }.distinct().sorted()
+    mapNotNull { it.cidade?.takeIf(String::isNotBlank) }
+        .agruparCidadesIgnorandoCaixa()
+        .map { it.nome }
+        .sorted()
 
 /** Todas as modalidades distintas já cadastradas (não vazias), em ordem alfabética. */
 fun List<Jogo>.modalidadesDisponiveis(): List<String> =
     mapNotNull { it.modalidade?.takeIf(String::isNotBlank) }.distinct().sorted()
 
-/** Quantidade de jogos por cidade (não vazias), da mais frequente para a menos. */
+/** Quantidade de jogos por cidade (não vazias), da mais frequente para a menos — mesmo
+ * agrupamento de [cidadesDisponiveis], então a quantidade ao lado de cada cidade sempre bate
+ * com o que [jogosDaCidade] retorna para ela. */
 fun List<Jogo>.contarPorCidade(): List<Pair<String, Int>> =
     mapNotNull { it.cidade?.takeIf(String::isNotBlank) }
-        .groupingBy { it }
-        .eachCount()
-        .toList()
+        .agruparCidadesIgnorandoCaixa()
+        .map { it.nome to it.quantidade }
         .sortedByDescending { it.second }
+
+/** Todos os jogos cuja cidade é a informada, ignorando maiúsculas/minúsculas e espaços nas
+ * pontas — não cria, duplica nem altera nenhum jogo, apenas filtra os registros existentes. */
+fun List<Jogo>.jogosDaCidade(cidade: String): List<Jogo> =
+    filter { it.cidade?.trim().equals(cidade.trim(), ignoreCase = true) }
+
+private data class GrupoCidade(val nome: String, val quantidade: Int)
+
+/**
+ * Agrupa nomes de cidade ignorando maiúsculas/minúsculas e espaços nas pontas — por exemplo,
+ * "Sorriso", "SORRISO" e "sorriso " viram um único grupo — sem alterar o texto salvo em cada
+ * jogo. O nome exibido para o grupo é a grafia mais usada nos cadastros (empate: a primeira
+ * encontrada), preservando a forma já usada pelo usuário em vez de forçar uma nova.
+ */
+private fun List<String>.agruparCidadesIgnorandoCaixa(): List<GrupoCidade> =
+    groupBy { it.trim().uppercase() }
+        .values
+        .map { variantes ->
+            val nome = variantes.map(String::trim).groupingBy { it }.eachCount().maxByOrNull { it.value }!!.key
+            GrupoCidade(nome = nome, quantidade = variantes.size)
+        }
 
 /** Quantidade de jogos por modalidade (não vazias), da mais frequente para a menos. */
 fun List<Jogo>.contarPorModalidade(): List<Pair<String, Int>> =

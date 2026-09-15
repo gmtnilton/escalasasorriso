@@ -1,8 +1,10 @@
 package com.meusjogos.arbitragem.core
 
+import com.meusjogos.arbitragem.core.logic.cidadesDisponiveis
 import com.meusjogos.arbitragem.core.logic.contarPorCidade
 import com.meusjogos.arbitragem.core.logic.contarPorModalidade
 import com.meusjogos.arbitragem.core.logic.estatisticas
+import com.meusjogos.arbitragem.core.logic.jogosDaCidade
 import com.meusjogos.arbitragem.core.logic.marcarComoRecebido
 import com.meusjogos.arbitragem.core.logic.resumoDoAno
 import com.meusjogos.arbitragem.core.logic.resumoDoMes
@@ -110,6 +112,33 @@ class TotaisTest {
         val contagem = jogos.contarPorCidade()
 
         assertEquals(listOf("Sorriso" to 2, "Sinop" to 1), contagem)
+    }
+
+    @Test
+    fun `cidades que diferem so por maiusculas ou espacos contam como uma unica cidade - secao 13`() {
+        val jogos = listOf(
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, cidade = "boa esperança do norte"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, cidade = "BOA ESPERANÇA DO NORTE"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, cidade = "Boa Esperança do Norte"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, cidade = " Boa Esperança do Norte "),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, cidade = "Sinop"),
+        )
+
+        assertEquals(listOf("Boa Esperança do Norte", "Sinop"), jogos.cidadesDisponiveis())
+        assertEquals(listOf("Boa Esperança do Norte" to 4, "Sinop" to 1), jogos.contarPorCidade())
+    }
+
+    @Test
+    fun `jogosDaCidade encontra todas as variacoes de caixa e espacos sem duplicar nada`() {
+        val boaEsperanca1 = Jogo(id = 1, data = LocalDate.now(), valorCentavos = 1_000, cidade = "boa esperança do norte")
+        val boaEsperanca2 = Jogo(id = 2, data = LocalDate.now(), valorCentavos = 1_000, cidade = " BOA ESPERANÇA DO NORTE ")
+        val sinop = Jogo(id = 3, data = LocalDate.now(), valorCentavos = 1_000, cidade = "Sinop")
+        val jogos = listOf(boaEsperanca1, boaEsperanca2, sinop)
+
+        val resultado = jogos.jogosDaCidade("Boa Esperança do Norte")
+
+        assertEquals(listOf(boaEsperanca1, boaEsperanca2), resultado)
+        assertEquals(3, jogos.size) // nenhum jogo foi criado ou removido pela consulta
     }
 
     @Test
