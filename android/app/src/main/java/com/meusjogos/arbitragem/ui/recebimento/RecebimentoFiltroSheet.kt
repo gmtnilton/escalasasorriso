@@ -37,10 +37,12 @@ import com.meusjogos.arbitragem.ui.components.CampoDataTexto
 fun RecebimentoFiltroSheet(
     filtro: FiltroJogos,
     competicoesDisponiveis: List<String>,
+    modalidadesDisponiveis: List<String>,
     cidadesDisponiveis: List<String>,
     onStatusChange: (FiltroStatus) -> Unit,
     onPeriodoChange: (FiltroPeriodo) -> Unit,
     onCompeticaoChange: (String?) -> Unit,
+    onModalidadeChange: (String?) -> Unit,
     onCidadeChange: (String?) -> Unit,
     onLimpar: () -> Unit,
     onFechar: () -> Unit,
@@ -138,6 +140,15 @@ fun RecebimentoFiltroSheet(
                     valorSelecionado = filtro.competicao,
                     opcoes = competicoesDisponiveis,
                     onSelecionar = onCompeticaoChange,
+                )
+            }
+
+            if (modalidadesDisponiveis.isNotEmpty()) {
+                SecaoDropdown(
+                    titulo = "⚽ Modalidade",
+                    valorSelecionado = filtro.modalidade,
+                    opcoes = modalidadesDisponiveis,
+                    onSelecionar = onModalidadeChange,
                 )
             }
 

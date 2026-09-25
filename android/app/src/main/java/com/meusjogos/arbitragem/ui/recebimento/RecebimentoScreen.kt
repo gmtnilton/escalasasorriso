@@ -3,6 +3,7 @@ package com.meusjogos.arbitragem.ui.recebimento
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +19,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
@@ -35,6 +38,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Snackbar
@@ -83,6 +87,8 @@ fun RecebimentoScreen(
     val coresStatus = LocalStatusColors.current
     var mostrarFiltros by remember { mutableStateOf(false) }
     var mostrarConfirmar by remember { mutableStateOf(false) }
+    var mostrarEscolhaTipo by remember { mutableStateOf(false) }
+    var tipoParaEscolherGrupo by remember { mutableStateOf<TipoAgrupamentoRecebimento?>(null) }
     var dataRecebimentoTexto by remember { mutableStateOf(DateUtils.formatarData(LocalDate.now())) }
     val snackbarHostState = remember { SnackbarHostState() }
     val modoSelecao = estado.selecionados.isNotEmpty()
@@ -142,6 +148,16 @@ fun RecebimentoScreen(
                         ContadorRecebimento(emoji = "🔴", valor = estado.totalPendentes, rotulo = "Pendentes", cor = coresStatus.aReceber)
                         ContadorRecebimento(emoji = "🟢", valor = estado.totalRecebidos, rotulo = "Recebidos", cor = coresStatus.recebido)
                         ContadorRecebimento(emoji = "⚽", valor = estado.totalGeral, rotulo = "Total", cor = MaterialTheme.colorScheme.onSurface)
+                    }
+
+                    Button(
+                        onClick = { mostrarEscolhaTipo = true },
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("RECEBER", fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -250,13 +266,47 @@ fun RecebimentoScreen(
         RecebimentoFiltroSheet(
             filtro = estado.filtro,
             competicoesDisponiveis = estado.competicoesDisponiveis,
+            modalidadesDisponiveis = estado.modalidadesDisponiveis,
             cidadesDisponiveis = estado.cidadesDisponiveis,
             onStatusChange = viewModel::atualizarStatus,
             onPeriodoChange = viewModel::atualizarPeriodo,
             onCompeticaoChange = viewModel::atualizarCompeticao,
+            onModalidadeChange = viewModel::atualizarModalidade,
             onCidadeChange = viewModel::atualizarCidade,
             onLimpar = viewModel::limparFiltros,
             onFechar = { mostrarFiltros = false },
+        )
+    }
+
+    if (mostrarEscolhaTipo) {
+        EscolherTipoRecebimentoSheet(
+            onEscolher = { tipo ->
+                mostrarEscolhaTipo = false
+                if (tipo == null) viewModel.limparAgrupamento() else tipoParaEscolherGrupo = tipo
+            },
+            onFechar = { mostrarEscolhaTipo = false },
+        )
+    }
+
+    val tipoAtual = tipoParaEscolherGrupo
+    if (tipoAtual != null) {
+        val grupos = when (tipoAtual) {
+            TipoAgrupamentoRecebimento.COMPETICAO -> estado.pendentesPorCompeticao
+            TipoAgrupamentoRecebimento.MODALIDADE -> estado.pendentesPorModalidade
+            TipoAgrupamentoRecebimento.CIDADE -> estado.pendentesPorCidade
+        }
+        EscolherGrupoRecebimentoSheet(
+            tipo = tipoAtual,
+            grupos = grupos,
+            onSelecionar = { nome ->
+                when (tipoAtual) {
+                    TipoAgrupamentoRecebimento.COMPETICAO -> viewModel.atualizarCompeticao(nome)
+                    TipoAgrupamentoRecebimento.MODALIDADE -> viewModel.atualizarModalidade(nome)
+                    TipoAgrupamentoRecebimento.CIDADE -> viewModel.atualizarCidade(nome)
+                }
+                tipoParaEscolherGrupo = null
+            },
+            onFechar = { tipoParaEscolherGrupo = null },
         )
     }
 
@@ -289,6 +339,121 @@ fun RecebimentoScreen(
                 TextButton(onClick = { mostrarConfirmar = false }) { Text("CANCELAR") }
             },
         )
+    }
+}
+
+/** Os 3 agrupamentos oferecidos pelo botão "➕ Receber" — "🎯 Jogo" não agrupa nada, então não
+ * precisa de um valor aqui (ver [EscolherTipoRecebimentoSheet]). */
+private enum class TipoAgrupamentoRecebimento(val titulo: String, val emoji: String) {
+    COMPETICAO("Competição", "🏆"),
+    MODALIDADE("Modalidade", "⚽"),
+    CIDADE("Cidade", "📍"),
+}
+
+/** Primeiro passo do botão "➕ Receber": como o usuário quer navegar até os jogos pendentes. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EscolherTipoRecebimentoSheet(
+    onEscolher: (TipoAgrupamentoRecebimento?) -> Unit,
+    onFechar: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onFechar) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
+            Text("Como você deseja receber?", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Column(modifier = Modifier.padding(top = 12.dp)) {
+                OpcaoRecebimento(emoji = "🏆", titulo = "Competição") {
+                    onEscolher(TipoAgrupamentoRecebimento.COMPETICAO)
+                }
+                OpcaoRecebimento(emoji = "⚽", titulo = "Modalidade") {
+                    onEscolher(TipoAgrupamentoRecebimento.MODALIDADE)
+                }
+                OpcaoRecebimento(emoji = "🎯", titulo = "Jogo") { onEscolher(null) }
+                OpcaoRecebimento(emoji = "📍", titulo = "Cidade") { onEscolher(TipoAgrupamentoRecebimento.CIDADE) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OpcaoRecebimento(emoji: String, titulo: String, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(emoji, style = MaterialTheme.typography.headlineSmall)
+            Spacer(modifier = Modifier.width(14.dp))
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(Icons.Filled.ChevronRight, contentDescription = null)
+        }
+    }
+}
+
+/** Segundo passo (Competição/Modalidade/Cidade): lista os grupos que têm jogo pendente, com a
+ * contagem — tocar num grupo aplica esse filtro na lista de Recebimento já existente. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EscolherGrupoRecebimentoSheet(
+    tipo: TipoAgrupamentoRecebimento,
+    grupos: List<Pair<String, Int>>,
+    onSelecionar: (String) -> Unit,
+    onFechar: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onFechar) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp)) {
+            Text(
+                text = "${tipo.emoji} Receber por ${tipo.titulo.lowercase()}",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            if (grupos.isEmpty()) {
+                Text(
+                    text = "Nenhum jogo pendente encontrado.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 16.dp),
+                )
+            } else {
+                Column(modifier = Modifier.padding(top = 12.dp)) {
+                    grupos.forEach { (nome, quantidade) ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp).clickable { onSelecionar(nome) },
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "${tipo.emoji} $nome",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                    Text(
+                                        text = "$quantidade ${if (quantidade == 1) "jogo pendente" else "jogos pendentes"}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                Icon(Icons.Filled.ChevronRight, contentDescription = null)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -4,7 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meusjogos.arbitragem.core.logic.cidadesDisponiveis
 import com.meusjogos.arbitragem.core.logic.competicoesDisponiveis
+import com.meusjogos.arbitragem.core.logic.contarPorCidade
+import com.meusjogos.arbitragem.core.logic.contarPorCompeticao
+import com.meusjogos.arbitragem.core.logic.contarPorModalidade
 import com.meusjogos.arbitragem.core.logic.filtrarEPesquisar
+import com.meusjogos.arbitragem.core.logic.modalidadesDisponiveis
 import com.meusjogos.arbitragem.core.logic.ordenarMaisRecentePrimeiro
 import com.meusjogos.arbitragem.core.model.FiltroJogos
 import com.meusjogos.arbitragem.core.model.FiltroPeriodo
@@ -24,6 +28,7 @@ data class RecebimentoUiState(
     val jogosFiltrados: List<Jogo> = emptyList(),
     val filtro: FiltroJogos = FiltroJogos(status = FiltroStatus.A_RECEBER),
     val competicoesDisponiveis: List<String> = emptyList(),
+    val modalidadesDisponiveis: List<String> = emptyList(),
     val cidadesDisponiveis: List<String> = emptyList(),
     val selecionados: Set<Long> = emptySet(),
     val processando: Boolean = false,
@@ -32,6 +37,11 @@ data class RecebimentoUiState(
     val totalPendentes: Int = 0,
     val totalRecebidos: Int = 0,
     val totalGeral: Int = 0,
+    /** Para o botão "➕ Receber": cada grupo (com pelo menos um jogo pendente) e quantos jogos
+     * pendentes tem — sempre olhando para TODOS os jogos, não só os filtrados no momento. */
+    val pendentesPorCompeticao: List<Pair<String, Int>> = emptyList(),
+    val pendentesPorModalidade: List<Pair<String, Int>> = emptyList(),
+    val pendentesPorCidade: List<Pair<String, Int>> = emptyList(),
 )
 
 /**
@@ -57,11 +67,13 @@ class RecebimentoViewModel(private val repository: JogoRepository) : ViewModel()
         val jogosFiltrados = jogos.filtrarEPesquisar(filtroAtual).ordenarMaisRecentePrimeiro()
         val jogosParaContadores = jogos.filtrarEPesquisar(filtroAtual.copy(status = FiltroStatus.TODOS))
         val idsVisiveis = jogosFiltrados.map { it.id }.toSet()
+        val jogosPendentes = jogos.filter { !it.recebido }
         RecebimentoUiState(
             carregando = false,
             jogosFiltrados = jogosFiltrados,
             filtro = filtroAtual,
             competicoesDisponiveis = jogos.competicoesDisponiveis(),
+            modalidadesDisponiveis = jogos.modalidadesDisponiveis(),
             cidadesDisponiveis = jogos.cidadesDisponiveis(),
             selecionados = selecaoBruta.intersect(idsVisiveis),
             processando = proc,
@@ -69,6 +81,9 @@ class RecebimentoViewModel(private val repository: JogoRepository) : ViewModel()
             totalPendentes = jogosParaContadores.count { !it.recebido },
             totalRecebidos = jogosParaContadores.count { it.recebido },
             totalGeral = jogosParaContadores.size,
+            pendentesPorCompeticao = jogosPendentes.contarPorCompeticao(),
+            pendentesPorModalidade = jogosPendentes.contarPorModalidade(),
+            pendentesPorCidade = jogosPendentes.contarPorCidade(),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecebimentoUiState())
 
@@ -88,8 +103,18 @@ class RecebimentoViewModel(private val repository: JogoRepository) : ViewModel()
         filtro.value = filtro.value.copy(competicao = competicao)
     }
 
+    fun atualizarModalidade(modalidade: String?) {
+        filtro.value = filtro.value.copy(modalidade = modalidade)
+    }
+
     fun atualizarCidade(cidade: String?) {
         filtro.value = filtro.value.copy(cidade = cidade)
+    }
+
+    /** Usado pelo botão "➕ Receber -> 🎯 Jogo": mostra a lista de pendentes sem nenhum
+     * agrupamento aplicado, mantendo status/período/pesquisa como estavam. */
+    fun limparAgrupamento() {
+        filtro.value = filtro.value.copy(competicao = null, modalidade = null, cidade = null)
     }
 
     fun limparFiltros() {
