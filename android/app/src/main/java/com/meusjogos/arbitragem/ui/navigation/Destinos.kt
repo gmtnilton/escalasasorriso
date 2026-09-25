@@ -38,6 +38,9 @@ object Rotas {
     const val JOGO_DETAIL_BASE = "jogo_detail"
     const val JOGO_DETAIL = "$JOGO_DETAIL_BASE/{$ARG_JOGO_ID}"
 
+    const val RECIBO_BASE = "recibo"
+    const val RECIBO = "$RECIBO_BASE/{$ARG_JOGO_ID}"
+
     /** id = 0 -> cadastro ultrarrápido de um jogo novo. */
     fun jogoFormNovo(): String = "$JOGO_FORM_BASE?$ARG_JOGO_ID=0&$ARG_DUPLICADO=false"
 
@@ -46,4 +49,6 @@ object Rotas {
     fun jogoFormDuplicado(jogoId: Long): String = "$JOGO_FORM_BASE?$ARG_JOGO_ID=$jogoId&$ARG_DUPLICADO=true"
 
     fun jogoDetail(jogoId: Long): String = "$JOGO_DETAIL_BASE/$jogoId"
+
+    fun recibo(jogoId: Long): String = "$RECIBO_BASE/$jogoId"
 }

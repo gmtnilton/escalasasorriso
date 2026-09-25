@@ -29,6 +29,7 @@ data class FiltroJogos(
     val status: FiltroStatus = FiltroStatus.TODOS,
     val periodo: FiltroPeriodo = FiltroPeriodo.Todos,
     val competicao: String? = null,
+    val modalidade: String? = null,
     val funcao: String? = null,
     val cidade: String? = null,
     val pesquisa: String = "",
@@ -37,6 +38,7 @@ data class FiltroJogos(
         get() = status != FiltroStatus.TODOS ||
             periodo != FiltroPeriodo.Todos ||
             !competicao.isNullOrBlank() ||
+            !modalidade.isNullOrBlank() ||
             !funcao.isNullOrBlank() ||
             !cidade.isNullOrBlank()
 }

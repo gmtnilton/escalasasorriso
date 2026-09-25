@@ -3,6 +3,7 @@ package com.meusjogos.arbitragem.ui.jogodetail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meusjogos.arbitragem.core.model.Jogo
+import com.meusjogos.arbitragem.data.recibo.ReciboRepository
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,10 +17,12 @@ data class JogoDetailUiState(
     val carregando: Boolean = true,
     val jogo: Jogo? = null,
     val excluido: Boolean = false,
+    val temRecibo: Boolean = false,
 )
 
 class JogoDetailViewModel(
     private val repository: JogoRepository,
+    private val reciboRepository: ReciboRepository,
     private val jogoId: Long,
 ) : ViewModel() {
 
@@ -30,11 +33,14 @@ class JogoDetailViewModel(
      * jogo uma única vez — assim, ao voltar de "Editar", os detalhes já
      * aparecem atualizados automaticamente, sem precisar recarregar.
      */
-    val uiState: StateFlow<JogoDetailUiState> = combine(repository.observarJogos(), excluido) { jogos, foiExcluido ->
+    val uiState: StateFlow<JogoDetailUiState> = combine(
+        repository.observarJogos(), excluido, reciboRepository.observarPorJogoId(jogoId),
+    ) { jogos, foiExcluido, recibo ->
         JogoDetailUiState(
             carregando = false,
             jogo = jogos.firstOrNull { it.id == jogoId },
             excluido = foiExcluido,
+            temRecibo = recibo != null,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), JogoDetailUiState())
 

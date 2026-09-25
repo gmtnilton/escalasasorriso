@@ -54,11 +54,13 @@ fun List<Jogo>.filtrarEPesquisar(filtro: FiltroJogos, hoje: LocalDate = LocalDat
         val periodoOk = intervalo == null || (jogo.data >= intervalo.first && jogo.data <= intervalo.second)
         val competicaoOk = filtro.competicao.isNullOrBlank() ||
             jogo.competicao.equals(filtro.competicao, ignoreCase = true)
+        val modalidadeOk = filtro.modalidade.isNullOrBlank() ||
+            jogo.modalidade.equals(filtro.modalidade, ignoreCase = true)
         val funcaoOk = filtro.funcao.isNullOrBlank() || jogo.funcao.equals(filtro.funcao, ignoreCase = true)
         val cidadeOk = filtro.cidade.isNullOrBlank() ||
             jogo.cidade?.trim().equals(filtro.cidade.trim(), ignoreCase = true)
         val pesquisaOk = jogo.correspondeA(filtro.pesquisa)
-        statusOk && periodoOk && competicaoOk && funcaoOk && cidadeOk && pesquisaOk
+        statusOk && periodoOk && competicaoOk && modalidadeOk && funcaoOk && cidadeOk && pesquisaOk
     }
 }
 

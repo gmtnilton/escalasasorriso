@@ -7,10 +7,12 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [JogoEntity::class], version = 3, exportSchema = true)
+@Database(entities = [JogoEntity::class, ReciboEntity::class], version = 4, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun jogoDao(): JogoDao
+
+    abstract fun reciboDao(): ReciboDao
 
     companion object {
         private const val NOME_BANCO = "meus_jogos_arbitragem.db"
@@ -24,7 +26,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     NOME_BANCO,
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { instancia = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build().also { instancia = it }
             }
     }
 }
@@ -85,5 +87,33 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
 val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE jogos ADD COLUMN modalidade TEXT")
+    }
+}
+
+/**
+ * v3 -> v4 (VERSÃO 1.1): cria a tabela "recibos" (recibo de pagamento em PDF
+ * por jogo já recebido) — tabela nova, não mexe em "jogos" nem em nenhum
+ * dado já existente. Um jogo só pode ter um recibo (índice único em
+ * jogo_id), reaproveitado sempre que o recibo é gerado de novo.
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS recibos (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                jogo_id INTEGER NOT NULL,
+                pagador_nome TEXT NOT NULL,
+                pagador_documento TEXT NOT NULL,
+                recebedor_nome TEXT NOT NULL,
+                recebedor_documento TEXT NOT NULL,
+                valor_centavos INTEGER NOT NULL,
+                data_pagamento INTEGER NOT NULL,
+                descricao TEXT,
+                criado_em INTEGER NOT NULL
+            )
+            """.trimIndent(),
+        )
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_recibos_jogo_id ON recibos(jogo_id)")
     }
 }

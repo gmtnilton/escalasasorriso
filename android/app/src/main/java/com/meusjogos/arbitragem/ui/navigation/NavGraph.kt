@@ -24,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.meusjogos.arbitragem.data.preferences.AtivacaoPreferences
 import com.meusjogos.arbitragem.data.preferences.TemaPreferences
+import com.meusjogos.arbitragem.data.recibo.ReciboRepository
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 import com.meusjogos.arbitragem.ui.configuracoes.ConfiguracoesScreen
 import com.meusjogos.arbitragem.ui.configuracoes.ConfiguracoesViewModel
@@ -37,6 +38,8 @@ import com.meusjogos.arbitragem.ui.jogos.JogosListScreen
 import com.meusjogos.arbitragem.ui.jogos.JogosListViewModel
 import com.meusjogos.arbitragem.ui.recebimento.RecebimentoScreen
 import com.meusjogos.arbitragem.ui.recebimento.RecebimentoViewModel
+import com.meusjogos.arbitragem.ui.recibo.GerarReciboScreen
+import com.meusjogos.arbitragem.ui.recibo.GerarReciboViewModel
 import com.meusjogos.arbitragem.ui.resumo.ResumoScreen
 import com.meusjogos.arbitragem.ui.resumo.ResumoViewModel
 import com.meusjogos.arbitragem.util.ViewModelFactory
@@ -45,6 +48,7 @@ import com.meusjogos.arbitragem.util.ViewModelFactory
 @Composable
 fun MeusJogosNavGraph(
     repository: JogoRepository,
+    reciboRepository: ReciboRepository,
     temaPreferences: TemaPreferences,
     ativacaoPreferences: AtivacaoPreferences,
 ) {
@@ -171,7 +175,7 @@ fun MeusJogosNavGraph(
             ) { entrada ->
                 val jogoId = entrada.arguments?.getLong(Rotas.ARG_JOGO_ID) ?: 0L
                 val viewModel: JogoDetailViewModel = viewModel(
-                    factory = ViewModelFactory { JogoDetailViewModel(repository, jogoId) },
+                    factory = ViewModelFactory { JogoDetailViewModel(repository, reciboRepository, jogoId) },
                 )
                 JogoDetailScreen(
                     viewModel = viewModel,
@@ -183,6 +187,21 @@ fun MeusJogosNavGraph(
                         }
                     },
                     onExcluirConcluido = { navController.popBackStack() },
+                    onGerarRecibo = { navController.navigate(Rotas.recibo(jogoId)) },
+                )
+            }
+
+            composable(
+                route = Rotas.RECIBO,
+                arguments = listOf(navArgument(Rotas.ARG_JOGO_ID) { type = NavType.LongType }),
+            ) { entrada ->
+                val jogoId = entrada.arguments?.getLong(Rotas.ARG_JOGO_ID) ?: 0L
+                val viewModel: GerarReciboViewModel = viewModel(
+                    factory = ViewModelFactory { GerarReciboViewModel(repository, reciboRepository, jogoId) },
+                )
+                GerarReciboScreen(
+                    viewModel = viewModel,
+                    onVoltar = { navController.popBackStack() },
                 )
             }
         }

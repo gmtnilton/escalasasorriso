@@ -137,6 +137,24 @@ fun List<Jogo>.contarPorModalidade(): List<Pair<String, Int>> =
         .toList()
         .sortedByDescending { it.second }
 
+/** Quantidade de jogos por competição (não vazias), da mais frequente para a menos. */
+fun List<Jogo>.contarPorCompeticao(): List<Pair<String, Int>> =
+    mapNotNull { it.competicao?.takeIf(String::isNotBlank) }
+        .groupingBy { it }
+        .eachCount()
+        .toList()
+        .sortedByDescending { it.second }
+
+/** Todos os jogos daquela competição (comparação ignora maiúsculas/minúsculas) — não cria,
+ * duplica nem altera nenhum jogo, apenas filtra os registros existentes. */
+fun List<Jogo>.jogosDaCompeticao(competicao: String): List<Jogo> =
+    filter { it.competicao.equals(competicao, ignoreCase = true) }
+
+/** Todos os jogos daquela modalidade (comparação ignora maiúsculas/minúsculas) — não cria,
+ * duplica nem altera nenhum jogo, apenas filtra os registros existentes. */
+fun List<Jogo>.jogosDaModalidade(modalidade: String): List<Jogo> =
+    filter { it.modalidade.equals(modalidade, ignoreCase = true) }
+
 /**
  * Cria a cópia de um jogo para a função "Duplicar jogo".
  *

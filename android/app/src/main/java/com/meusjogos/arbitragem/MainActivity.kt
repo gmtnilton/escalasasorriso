@@ -21,6 +21,7 @@ class MainActivity : ComponentActivity() {
 
         val app = application as MeusJogosApplication
         val repository = app.repository
+        val reciboRepository = app.reciboRepository
         val temaPreferences = app.temaPreferences
         val ativacaoPreferences = app.ativacaoPreferences
 
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     MeusJogosNavGraph(
                         repository = repository,
+                        reciboRepository = reciboRepository,
                         temaPreferences = temaPreferences,
                         ativacaoPreferences = ativacaoPreferences,
                     )

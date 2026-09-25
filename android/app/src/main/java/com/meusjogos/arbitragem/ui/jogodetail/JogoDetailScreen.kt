@@ -57,6 +57,7 @@ fun JogoDetailScreen(
     onEditar: () -> Unit,
     onDuplicarConcluido: (Long) -> Unit,
     onExcluirConcluido: () -> Unit,
+    onGerarRecibo: () -> Unit,
 ) {
     val estado by viewModel.uiState.collectAsState()
     var mostrarConfirmarRecebido by remember { mutableStateOf(false) }
@@ -120,6 +121,13 @@ fun JogoDetailScreen(
                         onClick = { viewModel.duplicar(onDuplicarConcluido) },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text("📋 Duplicar jogo") }
+
+                    if (jogo.recebido) {
+                        OutlinedButton(
+                            onClick = onGerarRecibo,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(if (estado.temRecibo) "🧾 Recibo gerado" else "🧾 Gerar recibo") }
+                    }
                 }
 
                 Divider(modifier = Modifier.padding(top = 4.dp))
