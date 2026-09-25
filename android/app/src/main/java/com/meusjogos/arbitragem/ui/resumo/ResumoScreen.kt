@@ -42,6 +42,7 @@ import com.meusjogos.arbitragem.core.util.CurrencyUtils
 import com.meusjogos.arbitragem.core.util.DateUtils
 import com.meusjogos.arbitragem.ui.components.ProportionBar
 import com.meusjogos.arbitragem.ui.resumo.charts.GraficoBarrasDuplasMensal
+import com.meusjogos.arbitragem.ui.resumo.charts.GraficoBarrasHorizontais
 import com.meusjogos.arbitragem.ui.resumo.charts.GraficoBarrasMensal
 import com.meusjogos.arbitragem.ui.resumo.charts.LegendaCor
 import com.meusjogos.arbitragem.ui.theme.LocalStatusColors
@@ -153,6 +154,25 @@ fun ResumoScreen(
                         cor = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(top = 12.dp),
                     )
+                }
+            }
+        }
+
+        if (estado.contagemPorModalidade.isNotEmpty()) {
+            item {
+                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Text(
+                            "📊 Jogos por modalidade",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        GraficoBarrasHorizontais(
+                            itens = estado.contagemPorModalidade,
+                            cor = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 14.dp),
+                        )
+                    }
                 }
             }
         }

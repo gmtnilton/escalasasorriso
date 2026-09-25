@@ -3,6 +3,7 @@ package com.meusjogos.arbitragem.ui.resumo
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meusjogos.arbitragem.core.logic.anosDisponiveis
+import com.meusjogos.arbitragem.core.logic.contarPorModalidade
 import com.meusjogos.arbitragem.core.logic.estatisticas
 import com.meusjogos.arbitragem.core.logic.resumoDoAno
 import com.meusjogos.arbitragem.core.logic.resumoDoMes
@@ -34,6 +35,8 @@ data class ResumoUiState(
     val resumoAnual: ResumoAnual = ResumoAnual(LocalDate.now().year, 0, 0, 0),
     val estatisticasGerais: Estatisticas = Estatisticas.VAZIO,
     val serieMensal: List<PontoMensal> = emptyList(),
+    /** REGRA 11 da V1.1: "📊 Jogos por modalidade" — considera todos os jogos, não só o mês/ano selecionado. */
+    val contagemPorModalidade: List<Pair<String, Int>> = emptyList(),
 )
 
 class ResumoViewModel(repository: JogoRepository) : ViewModel() {
@@ -52,6 +55,7 @@ class ResumoViewModel(repository: JogoRepository) : ViewModel() {
             resumoAnual = jogos.resumoDoAno(sel.ano),
             estatisticasGerais = jogos.estatisticas(),
             serieMensal = jogos.serieMensal(sel.ano),
+            contagemPorModalidade = jogos.contarPorModalidade(),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ResumoUiState())
 
