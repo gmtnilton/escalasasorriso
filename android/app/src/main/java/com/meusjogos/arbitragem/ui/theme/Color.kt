@@ -29,6 +29,7 @@ val Vermelho90 = Color(0xFFF9DEDC)
 
 val Neutro10 = Color(0xFF15181D)
 val Neutro20 = Color(0xFF282C33)
+val Neutro26 = Color(0xFF31363F)
 val Neutro90 = Color(0xFFE3E5E9)
 val Neutro95 = Color(0xFFF1F2F5)
 val Neutro99 = Color(0xFFFAFAFB)

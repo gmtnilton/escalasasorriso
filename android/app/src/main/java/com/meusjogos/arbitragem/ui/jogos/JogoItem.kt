@@ -35,7 +35,7 @@ fun JogoItem(jogo: Jogo, onClick: () -> Unit, modifier: Modifier = Modifier) {
 
     Card(
         modifier = modifier.fillMaxWidth().clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(

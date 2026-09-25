@@ -495,7 +495,7 @@ private fun RecebimentoJogoItem(
     Card(
         modifier = modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick),
         colors = CardDefaults.cardColors(containerColor = corFundo),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             if (modoSelecao) {

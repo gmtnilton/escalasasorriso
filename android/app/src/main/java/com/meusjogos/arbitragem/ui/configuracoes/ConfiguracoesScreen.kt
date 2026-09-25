@@ -135,7 +135,7 @@ fun ConfiguracoesScreen(
             }
 
             item {
-                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         SectionHeader(titulo = "Aparência")
                         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
@@ -160,7 +160,7 @@ fun ConfiguracoesScreen(
             }
 
             item {
-                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
                     Column {
                         ListItem(
                             headlineContent = { Text("Fazer backup") },
@@ -195,7 +195,7 @@ fun ConfiguracoesScreen(
             }
 
             item {
-                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
                     Column {
                         ListItem(
                             headlineContent = { Text("Escalas Árbitros — Versão 1.1") },

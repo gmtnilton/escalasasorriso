@@ -32,12 +32,14 @@ val MeusJogosTypography = Typography(
         fontWeight = FontWeight.SemiBold,
         fontSize = 22.sp,
         lineHeight = 28.sp,
+        letterSpacing = (-0.2).sp,
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
         lineHeight = 22.sp,
+        letterSpacing = (-0.1).sp,
     ),
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,

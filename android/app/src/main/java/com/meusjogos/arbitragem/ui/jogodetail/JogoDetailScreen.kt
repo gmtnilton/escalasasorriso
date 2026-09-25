@@ -191,7 +191,7 @@ private fun DetalhesCard(jogo: Jogo) {
     val coresStatus = LocalStatusColors.current
     val corValor = if (jogo.recebido) coresStatus.recebido else MaterialTheme.colorScheme.onSurface
 
-    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
         Column(modifier = Modifier.padding(20.dp)) {
             // Cabeçalho: confronto (ou fallback), data/horário e valor + status em destaque.
             Text(

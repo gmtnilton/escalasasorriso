@@ -31,7 +31,7 @@ fun StatCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = corFundo),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
             Text(

@@ -294,7 +294,7 @@ private fun FormSection(
     subtitulo: String? = null,
     conteudo: @Composable () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
         Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Column {
                 SectionHeader(titulo = titulo)

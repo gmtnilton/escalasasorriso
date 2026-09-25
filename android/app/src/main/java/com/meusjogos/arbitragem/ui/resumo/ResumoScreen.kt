@@ -108,7 +108,7 @@ fun ResumoScreen(
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     Text(
                         estado.anoSelecionado.toString(),
@@ -125,7 +125,7 @@ fun ResumoScreen(
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     Text("Estatísticas gerais", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     val stats = estado.estatisticasGerais
@@ -142,7 +142,7 @@ fun ResumoScreen(
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     Text(
                         "Jogos por mês — ${estado.anoSelecionado}",
@@ -160,7 +160,7 @@ fun ResumoScreen(
 
         if (estado.contagemPorModalidade.isNotEmpty()) {
             item {
-                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+                Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
                     Column(modifier = Modifier.padding(18.dp)) {
                         Text(
                             "📊 Jogos por modalidade",
@@ -178,7 +178,7 @@ fun ResumoScreen(
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     Text(
                         "Recebido x A receber por mês — ${estado.anoSelecionado}",
@@ -218,7 +218,7 @@ private fun CardMesHero(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

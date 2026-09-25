@@ -35,11 +35,13 @@ private val LightColorScheme = lightColorScheme(
     errorContainer = Vermelho90,
     onError = Color.White,
     onErrorContainer = Vermelho40,
-    background = Neutro99,
+    // background mais acinzentado que surface (cards) de propósito — sem essa
+    // diferença os cards se misturam com o fundo da tela e o app parece "chapado".
+    background = Neutro95,
     onBackground = Neutro10,
     surface = Neutro99,
     onSurface = Neutro10,
-    surfaceVariant = Neutro95,
+    surfaceVariant = Neutro90,
     onSurfaceVariant = Neutro20,
     outline = Slate40,
 )
@@ -61,11 +63,14 @@ private val DarkColorScheme = darkColorScheme(
     errorContainer = Vermelho40,
     onError = Navy20,
     onErrorContainer = Vermelho90,
+    // No escuro, sombra quase não aparece — a profundidade vem de "elevar" o
+    // tom da superfície: background é o mais escuro, surface (cards) um
+    // degrau mais claro, surfaceVariant (chips/áreas secundárias) mais um.
     background = Neutro10,
     onBackground = Neutro90,
-    surface = Neutro10,
+    surface = Neutro20,
     onSurface = Neutro90,
-    surfaceVariant = Neutro20,
+    surfaceVariant = Neutro26,
     onSurfaceVariant = Neutro90,
     outline = Slate80,
 )

@@ -128,7 +128,7 @@ private fun ResumoFinanceiroCard(recebidoCentavos: Long, aReceberCentavos: Long,
     val fracaoRecebida = if (totalCentavos > 0) recebidoCentavos.toFloat() / totalCentavos.toFloat() else 0f
     val fracaoAnimada by animateFloatAsState(targetValue = fracaoRecebida, animationSpec = tween(500), label = "proporcao")
 
-    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
         Column(modifier = Modifier.padding(18.dp)) {
             Text("Resumo financeiro", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
@@ -155,7 +155,7 @@ private fun ResumoMesAtualCard(
     totalCentavos: Long,
 ) {
     val coresStatus = LocalStatusColors.current
-    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
         Column(modifier = Modifier.padding(18.dp)) {
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Text("📅 $rotulo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
