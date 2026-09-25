@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meusjogos.arbitragem.core.logic.jogosDaCidade
+import com.meusjogos.arbitragem.core.logic.jogosDaModalidade
 import com.meusjogos.arbitragem.core.util.DateUtils
 import com.meusjogos.arbitragem.ui.components.CampoDataTexto
 import com.meusjogos.arbitragem.ui.components.EmptyState
@@ -60,6 +61,7 @@ fun JogosListScreen(
     var mostrarFiltros by remember { mutableStateOf(false) }
     var mostrarConfirmarLote by remember { mutableStateOf(false) }
     var cidadeSelecionada by remember { mutableStateOf<String?>(null) }
+    var modalidadeSelecionada by remember { mutableStateOf<String?>(null) }
     var dataRecebimentoLoteTexto by remember { mutableStateOf(DateUtils.formatarData(LocalDate.now())) }
     val pendentesFiltrados = estado.jogosFiltrados.count { !it.recebido }
 
@@ -139,7 +141,11 @@ fun JogosListScreen(
                     itens = estado.contagemPorCidade,
                     onClick = { cidade -> cidadeSelecionada = cidade },
                 )
-                LinhaContagem(titulo = "Por modalidade", itens = estado.contagemPorModalidade)
+                LinhaContagem(
+                    titulo = "Por modalidade",
+                    itens = estado.contagemPorModalidade,
+                    onClick = { modalidade -> modalidadeSelecionada = modalidade },
+                )
             }
         }
 
@@ -229,6 +235,16 @@ fun JogosListScreen(
             jogos = estado.jogosFiltrados.jogosDaCidade(cidade),
             onJogoClick = onJogoClick,
             onFechar = { cidadeSelecionada = null },
+        )
+    }
+
+    val modalidade = modalidadeSelecionada
+    if (modalidade != null) {
+        ModalidadeDetalheSheet(
+            modalidade = modalidade,
+            jogos = estado.jogosFiltrados.jogosDaModalidade(modalidade),
+            onJogoClick = onJogoClick,
+            onFechar = { modalidadeSelecionada = null },
         )
     }
 }
