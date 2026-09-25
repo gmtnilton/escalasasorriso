@@ -2,7 +2,9 @@ package com.meusjogos.arbitragem.ui.dashboard
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,12 +19,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meusjogos.arbitragem.core.util.CurrencyUtils
 import com.meusjogos.arbitragem.ui.components.ProportionBar
 import com.meusjogos.arbitragem.ui.components.StatCard
+import com.meusjogos.arbitragem.ui.theme.CoralVibrante
 import com.meusjogos.arbitragem.ui.theme.LocalStatusColors
 
 @Composable
@@ -44,18 +49,27 @@ fun DashboardScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
-            Column {
-                Text(
-                    text = "Olá, vamos para mais um jogo 👋",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = "Controle dos seus jogos de arbitragem",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 2.dp),
-                )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.large)
+                    .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, CoralVibrante)))
+                    .padding(20.dp),
+            ) {
+                Column {
+                    Text(
+                        text = "Olá, vamos para mais um jogo 👋",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
+                    Text(
+                        text = "Controle dos seus jogos de arbitragem",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.85f),
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
             }
         }
 
@@ -86,8 +100,7 @@ fun DashboardScreen(
                     titulo = "TOTAL GERAL",
                     icone = "📊",
                     valor = CurrencyUtils.formatar(estado.totalGeralCentavos),
-                    corFundo = MaterialTheme.colorScheme.primaryContainer,
-                    corValor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    gradienteFundo = Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, CoralVibrante)),
                     modifier = Modifier.weight(1f),
                 )
                 StatCard(

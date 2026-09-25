@@ -19,18 +19,18 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = Navy30,
+    primary = Petroleo40,
     onPrimary = Color.White,
-    primaryContainer = Navy90,
-    onPrimaryContainer = Navy10,
+    primaryContainer = Petroleo90,
+    onPrimaryContainer = Petroleo10,
     secondary = Slate40,
     onSecondary = Color.White,
     secondaryContainer = Slate90,
-    onSecondaryContainer = Navy10,
-    tertiary = Dourado40,
+    onSecondaryContainer = Petroleo10,
+    tertiary = Coral40,
     onTertiary = Color.White,
-    tertiaryContainer = Dourado90,
-    onTertiaryContainer = Dourado30,
+    tertiaryContainer = Coral90,
+    onTertiaryContainer = Coral30,
     error = Vermelho40,
     errorContainer = Vermelho90,
     onError = Color.White,
@@ -47,21 +47,21 @@ private val LightColorScheme = lightColorScheme(
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Navy80,
-    onPrimary = Navy20,
-    primaryContainer = Navy40,
-    onPrimaryContainer = Navy95,
+    primary = Petroleo80,
+    onPrimary = Petroleo20,
+    primaryContainer = Petroleo40,
+    onPrimaryContainer = Petroleo95,
     secondary = Slate80,
-    onSecondary = Navy20,
+    onSecondary = Petroleo20,
     secondaryContainer = Slate40,
     onSecondaryContainer = Slate90,
-    tertiary = Dourado80,
-    onTertiary = Navy20,
-    tertiaryContainer = Dourado40,
-    onTertiaryContainer = Dourado90,
+    tertiary = Coral80,
+    onTertiary = Petroleo20,
+    tertiaryContainer = Coral40,
+    onTertiaryContainer = Coral90,
     error = Vermelho80,
     errorContainer = Vermelho40,
-    onError = Navy20,
+    onError = Petroleo20,
     onErrorContainer = Vermelho90,
     // No escuro, sombra quase não aparece — a profundidade vem de "elevar" o
     // tom da superfície: background é o mais escuro, surface (cards) um
@@ -128,8 +128,8 @@ fun MeusJogosArbitragemTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.primary.toArgb()
-            // primary é escuro no tema claro (navy) e claro no tema escuro
-            // (navy claro) — os ícones da status bar precisam do contraste
+            // primary é escuro no tema claro (petróleo) e claro no tema escuro
+            // (petróleo claro) — os ícones da status bar precisam do contraste
             // oposto ao da própria cor de fundo da barra, por isso o
             // booleano é o mesmo de darkTheme, não o seu inverso.
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme

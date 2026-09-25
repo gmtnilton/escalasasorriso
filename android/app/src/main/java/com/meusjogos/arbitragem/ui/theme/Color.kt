@@ -2,22 +2,26 @@ package com.meusjogos.arbitragem.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Identidade ESCALA S ARBITRAGEM: navy elegante como cor principal, dourado
-// como destaque (mesma dupla do ícone do app), tons neutros para fundos —
-// visual de aplicativo financeiro/profissional, sem cores exageradas.
+// Identidade ESCALA S ARBITRAGEM (refresh "ousado"): azul petróleo como cor
+// principal, coral vibrante como destaque — mesma estrutura tonal de antes
+// (navy + dourado), só a matiz muda, para um visual mais moderno e chamativo
+// mantendo a legibilidade e o contraste.
 
-val Navy10 = Color(0xFF050D1A)
-val Navy20 = Color(0xFF0A1B33)
-val Navy30 = Color(0xFF0F2A52)
-val Navy40 = Color(0xFF17406F)
-val Navy80 = Color(0xFFAEC6E8)
-val Navy90 = Color(0xFFD7E3F5)
-val Navy95 = Color(0xFFEAF1FB)
+val Petroleo10 = Color(0xFF00181D)
+val Petroleo20 = Color(0xFF002830)
+val Petroleo30 = Color(0xFF013C47)
+val Petroleo40 = Color(0xFF0B5A6C)
+val Petroleo80 = Color(0xFF96D4E3)
+val Petroleo90 = Color(0xFFBDE9F2)
+val Petroleo95 = Color(0xFFDEF5FA)
 
-val Dourado30 = Color(0xFF7A5B00)
-val Dourado40 = Color(0xFF8A6D00)
-val Dourado80 = Color(0xFFF0B429)
-val Dourado90 = Color(0xFFFBE7B8)
+val Coral30 = Color(0xFF96280A)
+val Coral40 = Color(0xFFC5401B)
+val Coral80 = Color(0xFFFFB59D)
+val Coral90 = Color(0xFFFFDACB)
+
+/** Coral puro e vibrante — só para gradientes/badges de ícone, não é usado como cor de texto/fundo com texto por cima. */
+val CoralVibrante = Color(0xFFFF6B4A)
 
 val Slate40 = Color(0xFF55647A)
 val Slate80 = Color(0xFFBEC8D9)
