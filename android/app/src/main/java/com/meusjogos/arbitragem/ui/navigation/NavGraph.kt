@@ -116,7 +116,7 @@ fun MeusJogosNavGraph(
         ) {
             composable(DestinoPrincipal.INICIO.rota) {
                 val viewModel: DashboardViewModel = viewModel(
-                    factory = ViewModelFactory { DashboardViewModel(repository) },
+                    factory = ViewModelFactory { DashboardViewModel(repository, competicaoRepository) },
                 )
                 DashboardScreen(viewModel = viewModel, contentPadding = paddingInterno)
             }

@@ -4,12 +4,14 @@ import com.meusjogos.arbitragem.core.logic.duplicarJogo
 import com.meusjogos.arbitragem.core.logic.marcarComoRecebido as marcarComoRecebidoLogica
 import com.meusjogos.arbitragem.core.logic.desfazerRecebimento as desfazerRecebimentoLogica
 import com.meusjogos.arbitragem.core.model.Jogo
+import com.meusjogos.arbitragem.core.model.StatusPagamento
 import com.meusjogos.arbitragem.data.local.JogoDao
 import com.meusjogos.arbitragem.data.local.toDomain
 import com.meusjogos.arbitragem.data.local.toEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 import java.time.LocalDate
 
 /**
@@ -80,5 +82,24 @@ class JogoRepository(private val dao: JogoDao) {
     /** Importa jogos de outra origem (ex.: outro sistema) SOMANDO aos já cadastrados — nada é apagado. */
     suspend fun importarJogos(jogos: List<Jogo>) {
         dao.inserirTodos(jogos.map { it.toEntity().copy(id = 0L) })
+    }
+
+    /**
+     * REGRA nova: outros jogos AINDA PENDENTES da mesma competição e função que [jogo] — usado ao
+     * editar o valor de um jogo, para oferecer aplicar o mesmo valor aos demais de uma vez. Jogos
+     * já recebidos nunca entram aqui (não mexe em pagamento já feito).
+     */
+    suspend fun listarPendentesMesmaCompeticaoEFuncao(competicaoId: Long, funcao: String?, excluirJogoId: Long): List<Jogo> =
+        listarTudoUmaVez().filter {
+            it.competicaoId == competicaoId &&
+                it.funcao == funcao &&
+                it.id != excluirJogoId &&
+                it.statusPagamento == StatusPagamento.A_RECEBER
+        }
+
+    /** Aplica [novoValorCentavos] a todos os [jogos] informados (ver [listarPendentesMesmaCompeticaoEFuncao]). */
+    suspend fun atualizarValorEmLote(jogos: List<Jogo>, novoValorCentavos: Long) {
+        val agora = Instant.now()
+        jogos.forEach { jogo -> dao.atualizar(jogo.copy(valorCentavos = novoValorCentavos, dataAtualizacao = agora).toEntity()) }
     }
 }

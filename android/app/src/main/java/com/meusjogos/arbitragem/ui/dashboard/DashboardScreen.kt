@@ -116,6 +116,29 @@ fun DashboardScreen(
         }
 
         item {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                StatCard(
+                    titulo = "COMPETIÇÕES ABERTAS",
+                    icone = "🟢",
+                    valor = "${estado.competicoesAbertas}",
+                    subtitulo = "em andamento",
+                    corFundo = coresStatus.recebidoContainer,
+                    corValor = coresStatus.recebido,
+                    modifier = Modifier.weight(1f),
+                )
+                StatCard(
+                    titulo = "COMPETIÇÕES ENCERRADAS",
+                    icone = "🔴",
+                    valor = "${estado.competicoesEncerradas}",
+                    subtitulo = "encerradas",
+                    corFundo = coresStatus.aReceberContainer,
+                    corValor = coresStatus.aReceber,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+
+        item {
             ResumoFinanceiroCard(
                 recebidoCentavos = estado.totalRecebidoCentavos,
                 aReceberCentavos = estado.totalAReceberCentavos,

@@ -301,6 +301,27 @@ fun JogoFormScreen(
             },
         )
     }
+
+    estado.propostaValorLote?.let { proposta ->
+        val quantidade = proposta.jogos.size
+        AlertDialog(
+            onDismissRequest = viewModel::recusarAtualizarValorEmLote,
+            title = { Text("Atualizar valor em outros jogos?") },
+            text = {
+                Text(
+                    "Você alterou o valor para ${CurrencyUtils.formatar(proposta.novoValorCentavos)}. Aplicar o mesmo valor " +
+                        "aos outros $quantidade ${if (quantidade == 1) "jogo pendente" else "jogos pendentes"} de " +
+                        "\"${proposta.competicaoNome}\" como ${proposta.funcao ?: "a mesma função"}? Jogos já recebidos não são alterados.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::confirmarAtualizarValorEmLote) { Text("SIM, ATUALIZAR TODOS") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::recusarAtualizarValorEmLote) { Text("NÃO, só este jogo") }
+            },
+        )
+    }
 }
 
 /** Agrupa um bloco do formulário em um card com título — organiza o cadastro em seções claras. */

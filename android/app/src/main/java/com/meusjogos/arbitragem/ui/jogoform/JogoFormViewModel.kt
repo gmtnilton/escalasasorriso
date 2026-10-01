@@ -20,6 +20,15 @@ import java.time.LocalDate
 
 enum class ModoFormulario { NOVO, EDITAR, EDITAR_NOVO_DUPLICADO }
 
+/** REGRA nova: ao editar um jogo e mudar o valor, pergunta se aplica o mesmo valor aos outros
+ * jogos ainda pendentes da MESMA competição e função — [jogos] são os que seriam afetados. */
+data class PropostaValorLote(
+    val jogos: List<Jogo>,
+    val novoValorCentavos: Long,
+    val competicaoNome: String,
+    val funcao: String?,
+)
+
 data class JogoFormUiState(
     val carregando: Boolean = true,
     val modo: ModoFormulario = ModoFormulario.NOVO,
@@ -38,6 +47,10 @@ data class JogoFormUiState(
     val estadio: String = "",
     val funcao: String = "",
     val valorCentavos: Long = 0L,
+    /** Valor carregado ao abrir a tela (modo EDITAR) — compara com [valorCentavos] ao salvar para
+     * saber se o usuário mudou o valor e, nesse caso, oferecer aplicar aos demais jogos da mesma
+     * competição e função. Null em modo NOVO (não se aplica). */
+    val valorOriginalCentavos: Long? = null,
     val quantidadePartidas: Int = 1,
     val status: StatusPagamento = StatusPagamento.A_RECEBER,
     val dataRecebimentoTexto: String = "",
@@ -47,6 +60,7 @@ data class JogoFormUiState(
     val salvando: Boolean = false,
     val salvo: Boolean = false,
     val dataCriacaoOriginal: Instant? = null,
+    val propostaValorLote: PropostaValorLote? = null,
 ) {
     val tituloTela: String
         get() = when (modo) {
@@ -120,6 +134,7 @@ class JogoFormViewModel(
         estadio = jogo.estadio ?: "",
         funcao = jogo.funcao ?: "",
         valorCentavos = jogo.valorCentavos,
+        valorOriginalCentavos = jogo.valorCentavos,
         status = jogo.statusPagamento,
         dataRecebimentoTexto = jogo.dataRecebimento?.let { DateUtils.formatarData(it) } ?: "",
         observacoes = jogo.observacoes ?: "",
@@ -255,7 +270,46 @@ class JogoFormViewModel(
                 // partida vira um jogo independente, podendo depois ser recebido separadamente.
                 repeat(quantidade) { repository.salvar(jogo.copy(id = 0L)) }
             }
+
+            // REGRA nova: editou um jogo existente e mudou o valor? Pergunta se aplica o mesmo
+            // valor aos outros jogos ainda pendentes da mesma competição + função, de uma vez.
+            val valorMudou = estado.modo == ModoFormulario.EDITAR &&
+                estado.valorOriginalCentavos != null &&
+                estado.valorOriginalCentavos != jogo.valorCentavos
+            if (valorMudou && jogo.competicaoId != null) {
+                val outros = repository.listarPendentesMesmaCompeticaoEFuncao(
+                    competicaoId = jogo.competicaoId,
+                    funcao = jogo.funcao,
+                    excluirJogoId = jogo.id,
+                )
+                if (outros.isNotEmpty()) {
+                    _uiState.update {
+                        it.copy(
+                            salvando = false,
+                            propostaValorLote = PropostaValorLote(
+                                jogos = outros,
+                                novoValorCentavos = jogo.valorCentavos,
+                                competicaoNome = competicaoResolvida?.nome ?: jogo.competicao ?: "",
+                                funcao = jogo.funcao,
+                            ),
+                        )
+                    }
+                    return@launch
+                }
+            }
             _uiState.update { it.copy(salvando = false, salvo = true) }
         }
     }
+
+    /** Aplica o novo valor aos demais jogos propostos (ver [PropostaValorLote]) e conclui o salvamento. */
+    fun confirmarAtualizarValorEmLote() {
+        val proposta = _uiState.value.propostaValorLote ?: return
+        viewModelScope.launch {
+            repository.atualizarValorEmLote(proposta.jogos, proposta.novoValorCentavos)
+            _uiState.update { it.copy(propostaValorLote = null, salvo = true) }
+        }
+    }
+
+    /** Mantém o valor novo só neste jogo, sem mexer nos demais, e conclui o salvamento. */
+    fun recusarAtualizarValorEmLote() = _uiState.update { it.copy(propostaValorLote = null, salvo = true) }
 }
