@@ -153,7 +153,7 @@ fun MeusJogosNavGraph(
 
             composable(DestinoPrincipal.CONFIGURACOES.rota) {
                 val viewModel: ConfiguracoesViewModel = viewModel(
-                    factory = ViewModelFactory { ConfiguracoesViewModel(repository, temaPreferences) },
+                    factory = ViewModelFactory { ConfiguracoesViewModel(repository, competicaoRepository, temaPreferences) },
                 )
                 ConfiguracoesScreen(viewModel = viewModel, contentPadding = paddingInterno)
             }

@@ -6,6 +6,7 @@ import com.meusjogos.arbitragem.data.backup.BackupManager
 import com.meusjogos.arbitragem.data.backup.ExportManager
 import com.meusjogos.arbitragem.data.preferences.ModoTema
 import com.meusjogos.arbitragem.data.preferences.TemaPreferences
+import com.meusjogos.arbitragem.data.repository.CompeticaoRepository
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,10 +22,11 @@ data class ConfiguracoesUiState(
 
 class ConfiguracoesViewModel(
     private val repository: JogoRepository,
+    private val competicaoRepository: CompeticaoRepository,
     private val temaPreferences: TemaPreferences,
 ) : ViewModel() {
 
-    private val backupManager = BackupManager(repository)
+    private val backupManager = BackupManager(repository, competicaoRepository)
     private val exportManager = ExportManager(repository)
 
     private val _uiState = MutableStateFlow(ConfiguracoesUiState())

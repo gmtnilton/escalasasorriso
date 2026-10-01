@@ -1,7 +1,10 @@
 package com.meusjogos.arbitragem.data.backup
 
+import com.meusjogos.arbitragem.core.logic.chaveNormalizadaCompeticao
+import com.meusjogos.arbitragem.core.model.Competicao
 import com.meusjogos.arbitragem.core.model.Jogo
 import com.meusjogos.arbitragem.core.model.StatusPagamento
+import com.meusjogos.arbitragem.data.repository.CompeticaoRepository
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,7 +21,10 @@ import kotlin.math.roundToLong
  * outro aparelho. Também importa (somando, sem apagar nada) backups de
  * outro sistema de controle de jogos, no formato "records"/"qty"/"value".
  */
-class BackupManager(private val repository: JogoRepository) {
+class BackupManager(
+    private val repository: JogoRepository,
+    private val competicaoRepository: CompeticaoRepository,
+) {
 
     companion object {
         const val VERSAO_BACKUP = 3
@@ -47,7 +53,7 @@ class BackupManager(private val repository: JogoRepository) {
                     "sistema de controle de jogos, use \"Importar de outro sistema\".",
             )
         }
-        val jogos = jsonParaJogosFormatoProprio(raiz)
+        val jogos = vincularCompeticoes(jsonParaJogosFormatoProprio(raiz))
         repository.restaurarBackup(jogos)
         jogos.size
     }
@@ -67,9 +73,29 @@ class BackupManager(private val repository: JogoRepository) {
                 "Não reconheci o formato desse arquivo (esperava uma lista \"records\").",
             )
         }
-        val jogos = jsonParaJogosFormatoRecords(raiz)
+        val jogos = vincularCompeticoes(jsonParaJogosFormatoRecords(raiz))
         repository.importarJogos(jogos)
         jogos.size
+    }
+
+    /**
+     * REGRA 3/16 da V1.2 — resolve a competição central de cada jogo restaurado/importado
+     * (reaproveitando uma já equivalente, ou criando) antes de salvar, para esses jogos
+     * aparecerem corretamente em "Por competição" e para nomes de competição que só diferem em
+     * maiúsculas/minúsculas ou espaços (comuns em backups antigos) serem unificados em uma só,
+     * igual ao que já acontece ao cadastrar um jogo manualmente.
+     */
+    private suspend fun vincularCompeticoes(jogos: List<Jogo>): List<Jogo> {
+        val resolvidas = mutableMapOf<String, Competicao>()
+        return jogos.map { jogo ->
+            val nome = jogo.competicao?.trim()
+            if (nome.isNullOrBlank()) return@map jogo
+            val chave = chaveNormalizadaCompeticao(nome, jogo.cidade, jogo.modalidade)
+            val competicao = resolvidas.getOrPut(chave) {
+                competicaoRepository.buscarOuCriar(nome, jogo.cidade, jogo.modalidade)
+            }
+            jogo.copy(competicao = competicao.nome, competicaoId = competicao.id)
+        }
     }
 
     private fun jogosParaJson(jogos: List<Jogo>): String {
