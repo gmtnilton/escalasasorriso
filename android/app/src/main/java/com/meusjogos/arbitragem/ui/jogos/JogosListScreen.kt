@@ -54,6 +54,7 @@ import java.time.LocalDate
 fun JogosListScreen(
     viewModel: JogosListViewModel,
     onJogoClick: (Long) -> Unit,
+    onCompeticaoClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
 ) {
@@ -131,11 +132,14 @@ fun JogosListScreen(
             }
         }
 
-        if (estado.jogosFiltrados.isNotEmpty() && (estado.contagemPorCidade.isNotEmpty() || estado.contagemPorModalidade.isNotEmpty())) {
+        if (estado.jogosFiltrados.isNotEmpty() && (estado.contagemPorCidade.isNotEmpty() || estado.contagemPorModalidade.isNotEmpty() || estado.contagemPorCompeticao.isNotEmpty())) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                if (estado.contagemPorCompeticao.isNotEmpty()) {
+                    LinhaContagemCompeticao(itens = estado.contagemPorCompeticao, onClick = onCompeticaoClick)
+                }
                 LinhaContagem(
                     titulo = "Por cidade",
                     itens = estado.contagemPorCidade,
@@ -246,6 +250,40 @@ fun JogosListScreen(
             onJogoClick = onJogoClick,
             onFechar = { modalidadeSelecionada = null },
         )
+    }
+}
+
+/** Contagem de jogos por competição (REGRA 13 da V1.2), em chips horizontalmente roláveis —
+ * tocar num chip abre a tela da competição (resumo, jogos, encerrar, recebimento total...). */
+@Composable
+private fun LinhaContagemCompeticao(itens: List<Triple<Long, String, Int>>, onClick: (Long) -> Unit) {
+    if (itens.isEmpty()) return
+    Column {
+        Text(
+            text = "Por competição",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 6.dp).horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            itens.forEach { (id, nome, quantidade) ->
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.clickable { onClick(id) },
+                ) {
+                    Text(
+                        text = "🏆 $nome · $quantidade",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    )
+                }
+            }
+        }
     }
 }
 

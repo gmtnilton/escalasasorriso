@@ -29,6 +29,11 @@ data class JogoEntity(
     @ColumnInfo(name = "competicao")
     val competicao: String?,
 
+    /** Vínculo com o cadastro central de competições (VERSÃO 1.2) — ver [CompeticaoEntity] e
+     * [MIGRATION_4_5]. Null para jogos sem competição informada. */
+    @ColumnInfo(name = "competicao_id")
+    val competicaoId: Long?,
+
     @ColumnInfo(name = "modalidade")
     val modalidade: String?,
 

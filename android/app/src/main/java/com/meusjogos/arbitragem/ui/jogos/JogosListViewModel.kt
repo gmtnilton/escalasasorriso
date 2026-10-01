@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meusjogos.arbitragem.core.logic.competicoesDisponiveis
 import com.meusjogos.arbitragem.core.logic.contarPorCidade
+import com.meusjogos.arbitragem.core.logic.contarPorCompeticaoId
 import com.meusjogos.arbitragem.core.logic.contarPorModalidade
 import com.meusjogos.arbitragem.core.logic.filtrarEPesquisar
 import com.meusjogos.arbitragem.core.logic.funcoesDisponiveis
@@ -31,6 +32,8 @@ data class JogosListUiState(
     val totalSemFiltro: Int = 0,
     val contagemPorCidade: List<Pair<String, Int>> = emptyList(),
     val contagemPorModalidade: List<Pair<String, Int>> = emptyList(),
+    /** REGRA 13 da V1.2 — chip "Por competição", agrupado por id (nunca por texto duplicado). */
+    val contagemPorCompeticao: List<Triple<Long, String, Int>> = emptyList(),
 )
 
 class JogosListViewModel(private val repository: JogoRepository) : ViewModel() {
@@ -48,6 +51,7 @@ class JogosListViewModel(private val repository: JogoRepository) : ViewModel() {
             totalSemFiltro = jogos.size,
             contagemPorCidade = jogosFiltrados.contarPorCidade(),
             contagemPorModalidade = jogosFiltrados.contarPorModalidade(),
+            contagemPorCompeticao = jogosFiltrados.contarPorCompeticaoId(),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), JogosListUiState())
 

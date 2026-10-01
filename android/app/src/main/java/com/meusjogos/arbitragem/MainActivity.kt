@@ -22,6 +22,8 @@ class MainActivity : ComponentActivity() {
         val app = application as MeusJogosApplication
         val repository = app.repository
         val reciboRepository = app.reciboRepository
+        val competicaoRepository = app.competicaoRepository
+        val reciboCompeticaoRepository = app.reciboCompeticaoRepository
         val temaPreferences = app.temaPreferences
         val ativacaoPreferences = app.ativacaoPreferences
 
@@ -37,6 +39,8 @@ class MainActivity : ComponentActivity() {
                     MeusJogosNavGraph(
                         repository = repository,
                         reciboRepository = reciboRepository,
+                        competicaoRepository = competicaoRepository,
+                        reciboCompeticaoRepository = reciboCompeticaoRepository,
                         temaPreferences = temaPreferences,
                         ativacaoPreferences = ativacaoPreferences,
                     )

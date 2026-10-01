@@ -31,9 +31,12 @@ enum class DestinoPrincipal(
 object Rotas {
     const val ARG_JOGO_ID = "jogoId"
     const val ARG_DUPLICADO = "duplicado"
+    const val ARG_COMPETICAO_ID = "competicaoId"
+    const val ARG_COMPETICAO_PRESELECIONADA = "competicaoPreSelecionada"
 
     const val JOGO_FORM_BASE = "jogo_form"
-    const val JOGO_FORM = "$JOGO_FORM_BASE?$ARG_JOGO_ID={$ARG_JOGO_ID}&$ARG_DUPLICADO={$ARG_DUPLICADO}"
+    const val JOGO_FORM =
+        "$JOGO_FORM_BASE?$ARG_JOGO_ID={$ARG_JOGO_ID}&$ARG_DUPLICADO={$ARG_DUPLICADO}&$ARG_COMPETICAO_PRESELECIONADA={$ARG_COMPETICAO_PRESELECIONADA}"
 
     const val JOGO_DETAIL_BASE = "jogo_detail"
     const val JOGO_DETAIL = "$JOGO_DETAIL_BASE/{$ARG_JOGO_ID}"
@@ -41,14 +44,29 @@ object Rotas {
     const val RECIBO_BASE = "recibo"
     const val RECIBO = "$RECIBO_BASE/{$ARG_JOGO_ID}"
 
+    const val COMPETICAO_DETAIL_BASE = "competicao_detail"
+    const val COMPETICAO_DETAIL = "$COMPETICAO_DETAIL_BASE/{$ARG_COMPETICAO_ID}"
+
+    const val COMPETICAO_RECIBO_BASE = "competicao_recibo"
+    const val COMPETICAO_RECIBO = "$COMPETICAO_RECIBO_BASE/{$ARG_COMPETICAO_ID}"
+
     /** id = 0 -> cadastro ultrarrápido de um jogo novo. */
-    fun jogoFormNovo(): String = "$JOGO_FORM_BASE?$ARG_JOGO_ID=0&$ARG_DUPLICADO=false"
+    fun jogoFormNovo(): String = "$JOGO_FORM_BASE?$ARG_JOGO_ID=0&$ARG_DUPLICADO=false&$ARG_COMPETICAO_PRESELECIONADA=0"
 
-    fun jogoFormEditar(jogoId: Long): String = "$JOGO_FORM_BASE?$ARG_JOGO_ID=$jogoId&$ARG_DUPLICADO=false"
+    /** Igual a [jogoFormNovo], mas já chegando com a competição pré-selecionada (REGRA 13 —
+     * botão "➕ Novo jogo" dentro da tela da competição). */
+    fun jogoFormNovoNaCompeticao(competicaoId: Long): String =
+        "$JOGO_FORM_BASE?$ARG_JOGO_ID=0&$ARG_DUPLICADO=false&$ARG_COMPETICAO_PRESELECIONADA=$competicaoId"
 
-    fun jogoFormDuplicado(jogoId: Long): String = "$JOGO_FORM_BASE?$ARG_JOGO_ID=$jogoId&$ARG_DUPLICADO=true"
+    fun jogoFormEditar(jogoId: Long): String = "$JOGO_FORM_BASE?$ARG_JOGO_ID=$jogoId&$ARG_DUPLICADO=false&$ARG_COMPETICAO_PRESELECIONADA=0"
+
+    fun jogoFormDuplicado(jogoId: Long): String = "$JOGO_FORM_BASE?$ARG_JOGO_ID=$jogoId&$ARG_DUPLICADO=true&$ARG_COMPETICAO_PRESELECIONADA=0"
 
     fun jogoDetail(jogoId: Long): String = "$JOGO_DETAIL_BASE/$jogoId"
 
     fun recibo(jogoId: Long): String = "$RECIBO_BASE/$jogoId"
+
+    fun competicaoDetail(competicaoId: Long): String = "$COMPETICAO_DETAIL_BASE/$competicaoId"
+
+    fun competicaoRecibo(competicaoId: Long): String = "$COMPETICAO_RECIBO_BASE/$competicaoId"
 }

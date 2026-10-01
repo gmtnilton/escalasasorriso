@@ -20,6 +20,11 @@ data class Jogo(
     val data: LocalDate,
     val horario: LocalTime? = null,
     val competicao: String? = null,
+    /** Vínculo com o cadastro central de competições (VERSÃO 1.2) — null para jogos sem competição
+     * informada. Quando presente, [competicao] é mantido como uma cópia sincronizada do nome
+     * canônico da competição vinculada, para que todo o código que já lê [competicao] como texto
+     * livre (filtros, CSV, backup, recibo) continue funcionando sem nenhuma alteração. */
+    val competicaoId: Long? = null,
     val modalidade: String? = null,
     val categoria: String? = null,
     val equipeMandante: String? = null,

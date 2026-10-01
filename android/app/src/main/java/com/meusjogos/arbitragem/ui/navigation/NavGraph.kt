@@ -24,8 +24,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.meusjogos.arbitragem.data.preferences.AtivacaoPreferences
 import com.meusjogos.arbitragem.data.preferences.TemaPreferences
+import com.meusjogos.arbitragem.data.recibo.ReciboCompeticaoRepository
 import com.meusjogos.arbitragem.data.recibo.ReciboRepository
+import com.meusjogos.arbitragem.data.repository.CompeticaoRepository
 import com.meusjogos.arbitragem.data.repository.JogoRepository
+import com.meusjogos.arbitragem.ui.competicao.CompeticaoDetailScreen
+import com.meusjogos.arbitragem.ui.competicao.CompeticaoDetailViewModel
+import com.meusjogos.arbitragem.ui.competicao.CompeticaoReciboScreen
+import com.meusjogos.arbitragem.ui.competicao.CompeticaoReciboViewModel
 import com.meusjogos.arbitragem.ui.configuracoes.ConfiguracoesScreen
 import com.meusjogos.arbitragem.ui.configuracoes.ConfiguracoesViewModel
 import com.meusjogos.arbitragem.ui.dashboard.DashboardScreen
@@ -49,6 +55,8 @@ import com.meusjogos.arbitragem.util.ViewModelFactory
 fun MeusJogosNavGraph(
     repository: JogoRepository,
     reciboRepository: ReciboRepository,
+    competicaoRepository: CompeticaoRepository,
+    reciboCompeticaoRepository: ReciboCompeticaoRepository,
     temaPreferences: TemaPreferences,
     ativacaoPreferences: AtivacaoPreferences,
 ) {
@@ -121,6 +129,7 @@ fun MeusJogosNavGraph(
                     viewModel = viewModel,
                     contentPadding = paddingInterno,
                     onJogoClick = { jogoId -> navController.navigate(Rotas.jogoDetail(jogoId)) },
+                    onCompeticaoClick = { competicaoId -> navController.navigate(Rotas.competicaoDetail(competicaoId)) },
                 )
             }
 
@@ -154,12 +163,14 @@ fun MeusJogosNavGraph(
                 arguments = listOf(
                     navArgument(Rotas.ARG_JOGO_ID) { type = NavType.LongType; defaultValue = 0L },
                     navArgument(Rotas.ARG_DUPLICADO) { type = NavType.BoolType; defaultValue = false },
+                    navArgument(Rotas.ARG_COMPETICAO_PRESELECIONADA) { type = NavType.LongType; defaultValue = 0L },
                 ),
             ) { entrada ->
                 val jogoId = entrada.arguments?.getLong(Rotas.ARG_JOGO_ID) ?: 0L
                 val duplicado = entrada.arguments?.getBoolean(Rotas.ARG_DUPLICADO) ?: false
+                val competicaoPreSelecionadaId = entrada.arguments?.getLong(Rotas.ARG_COMPETICAO_PRESELECIONADA) ?: 0L
                 val viewModel: JogoFormViewModel = viewModel(
-                    factory = ViewModelFactory { JogoFormViewModel(repository, jogoId, duplicado) },
+                    factory = ViewModelFactory { JogoFormViewModel(repository, competicaoRepository, jogoId, duplicado, competicaoPreSelecionadaId) },
                 )
                 JogoFormScreen(
                     viewModel = viewModel,
@@ -200,6 +211,44 @@ fun MeusJogosNavGraph(
                     factory = ViewModelFactory { GerarReciboViewModel(repository, reciboRepository, jogoId) },
                 )
                 GerarReciboScreen(
+                    viewModel = viewModel,
+                    onVoltar = { navController.popBackStack() },
+                )
+            }
+
+            composable(
+                route = Rotas.COMPETICAO_DETAIL,
+                arguments = listOf(navArgument(Rotas.ARG_COMPETICAO_ID) { type = NavType.LongType }),
+            ) { entrada ->
+                val competicaoId = entrada.arguments?.getLong(Rotas.ARG_COMPETICAO_ID) ?: 0L
+                val viewModel: CompeticaoDetailViewModel = viewModel(
+                    factory = ViewModelFactory { CompeticaoDetailViewModel(repository, competicaoRepository, reciboCompeticaoRepository, competicaoId) },
+                )
+                CompeticaoDetailScreen(
+                    viewModel = viewModel,
+                    onVoltar = { navController.popBackStack() },
+                    onNovoJogo = { id -> navController.navigate(Rotas.jogoFormNovoNaCompeticao(id)) },
+                    onJogoClick = { jogoId -> navController.navigate(Rotas.jogoDetail(jogoId)) },
+                    onGerarRecibo = { id -> navController.navigate(Rotas.competicaoRecibo(id)) },
+                    onCompeticaoAtualizada = { novoId ->
+                        navController.navigate(Rotas.competicaoDetail(novoId)) {
+                            popUpTo(Rotas.COMPETICAO_DETAIL) { inclusive = true }
+                        }
+                    },
+                )
+            }
+
+            composable(
+                route = Rotas.COMPETICAO_RECIBO,
+                arguments = listOf(navArgument(Rotas.ARG_COMPETICAO_ID) { type = NavType.LongType }),
+            ) { entrada ->
+                val competicaoId = entrada.arguments?.getLong(Rotas.ARG_COMPETICAO_ID) ?: 0L
+                val viewModel: CompeticaoReciboViewModel = viewModel(
+                    factory = ViewModelFactory {
+                        CompeticaoReciboViewModel(repository, competicaoRepository, reciboCompeticaoRepository, competicaoId)
+                    },
+                )
+                CompeticaoReciboScreen(
                     viewModel = viewModel,
                     onVoltar = { navController.popBackStack() },
                 )

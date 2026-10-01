@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,6 +30,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,12 +49,12 @@ import com.meusjogos.arbitragem.core.util.CurrencyUtils
 import com.meusjogos.arbitragem.data.preferences.AtivacaoPreferences
 import com.meusjogos.arbitragem.ui.components.AtivacaoDialog
 import com.meusjogos.arbitragem.ui.components.CampoComOpcoes
+import com.meusjogos.arbitragem.ui.components.CampoCompeticaoAutocomplete
 import com.meusjogos.arbitragem.ui.components.CampoDataTexto
 import com.meusjogos.arbitragem.ui.components.CampoHoraTexto
 import com.meusjogos.arbitragem.ui.components.CampoValorMonetario
 import com.meusjogos.arbitragem.ui.components.SectionHeader
 
-private val COMPETICOES_PADRAO = listOf("Campeonato Estadual", "Campeonato Municipal", "Copa", "Amistoso", "Base", "Feminino", "Outro")
 private val CATEGORIAS_PADRAO = listOf("Profissional", "Amador", "Sub-20", "Sub-17", "Sub-15", "Feminino", "Outro")
 private val FUNCOES_PADRAO = listOf("Árbitro", "Assistente 1", "Assistente 2", "Quarto árbitro", "VAR", "Anotador", "Outro")
 private val MODALIDADES_PADRAO = listOf("Futebol de Campo", "Futebol Society", "Futsal", "Beach Soccer", "Outro")
@@ -141,11 +143,11 @@ fun JogoFormScreen(
                     )
                 }
 
-                CampoComOpcoes(
+                CampoCompeticaoAutocomplete(
                     valor = estado.competicao,
                     onValorChange = viewModel::atualizarCompeticao,
-                    label = "Competição",
-                    opcoes = COMPETICOES_PADRAO,
+                    sugestoes = estado.sugestoesCompeticao,
+                    onCompeticaoSelecionada = viewModel::selecionarCompeticao,
                     modifier = Modifier.fillMaxWidth(),
                 )
 
@@ -283,6 +285,20 @@ fun JogoFormScreen(
                 viewModel.salvar()
             },
             onFechar = { mostrarAtivacao = false },
+        )
+    }
+
+    estado.competicaoBloqueada?.let { competicao ->
+        AlertDialog(
+            onDismissRequest = viewModel::fecharAvisoCompeticaoEncerrada,
+            title = { Text("Esta competição está encerrada.") },
+            text = { Text("\"${competicao.nome}\" foi encerrada e não aceita novos jogos. Reabrir a competição para continuar?") },
+            confirmButton = {
+                TextButton(onClick = viewModel::reabrirCompeticaoESalvar) { Text("REABRIR COMPETIÇÃO") }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::fecharAvisoCompeticaoEncerrada) { Text("Cancelar") }
+            },
         )
     }
 }

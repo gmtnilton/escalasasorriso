@@ -2,13 +2,17 @@ package com.meusjogos.arbitragem.ui.jogoform
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.meusjogos.arbitragem.core.logic.sugestoesPara
+import com.meusjogos.arbitragem.core.model.Competicao
 import com.meusjogos.arbitragem.core.model.Jogo
 import com.meusjogos.arbitragem.core.model.StatusPagamento
 import com.meusjogos.arbitragem.core.util.DateUtils
+import com.meusjogos.arbitragem.data.repository.CompeticaoRepository
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -22,6 +26,10 @@ data class JogoFormUiState(
     val dataTexto: String = "",
     val horarioTexto: String = "",
     val competicao: String = "",
+    val sugestoesCompeticao: List<Competicao> = emptyList(),
+    /** Preenchida quando a tentativa de salvar esbarra numa competição ENCERRADA (REGRA 8) —
+     * a tela mostra o aviso e oferece "Reabrir competição". */
+    val competicaoBloqueada: Competicao? = null,
     val modalidade: String = "",
     val categoria: String = "",
     val equipeMandante: String = "",
@@ -55,8 +63,10 @@ data class JogoFormUiState(
 
 class JogoFormViewModel(
     private val repository: JogoRepository,
+    private val competicaoRepository: CompeticaoRepository,
     private val jogoId: Long,
     private val duplicado: Boolean,
+    private val competicaoPreSelecionadaId: Long = 0L,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -68,15 +78,31 @@ class JogoFormViewModel(
     )
     val uiState: StateFlow<JogoFormUiState> = _uiState.asStateFlow()
 
+    /** Carregada uma vez ao abrir a tela — usada para as sugestões do autocomplete (REGRA 6). */
+    private var competicoesConhecidas: List<Competicao> = emptyList()
+
     init {
-        if (jogoId != 0L) {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            competicoesConhecidas = competicaoRepository.observarCompeticoes().first()
+            if (jogoId != 0L) {
                 val jogo = repository.buscarPorId(jogoId)
-                if (jogo != null) {
-                    _uiState.update { it.preencherComJogo(jogo) }
+                _uiState.update { if (jogo != null) it.preencherComJogo(jogo) else it.copy(carregando = false) }
+            } else if (competicaoPreSelecionadaId != 0L) {
+                val preSelecionada = competicaoRepository.buscarPorId(competicaoPreSelecionadaId)
+                if (preSelecionada != null) {
+                    _uiState.update {
+                        it.copy(
+                            carregando = false,
+                            competicao = preSelecionada.nome,
+                            cidade = preSelecionada.cidade ?: "",
+                            modalidade = preSelecionada.modalidade ?: "",
+                        )
+                    }
                 } else {
                     _uiState.update { it.copy(carregando = false) }
                 }
+            } else {
+                _uiState.update { it.copy(carregando = false) }
             }
         }
     }
@@ -102,7 +128,23 @@ class JogoFormViewModel(
 
     fun atualizarData(texto: String) = _uiState.update { it.copy(dataTexto = texto, erroData = null) }
     fun atualizarHorario(texto: String) = _uiState.update { it.copy(horarioTexto = texto) }
-    fun atualizarCompeticao(texto: String) = _uiState.update { it.copy(competicao = texto) }
+
+    /** REGRA 6: a cada letra digitada, recalcula as sugestões que combinam com o texto. */
+    fun atualizarCompeticao(texto: String) = _uiState.update {
+        it.copy(competicao = texto, sugestoesCompeticao = competicoesConhecidas.sugestoesPara(texto), competicaoBloqueada = null)
+    }
+
+    /** REGRA 4: ao tocar numa sugestão, preenche cidade e modalidade automaticamente. */
+    fun selecionarCompeticao(competicao: Competicao) = _uiState.update {
+        it.copy(
+            competicao = competicao.nome,
+            cidade = competicao.cidade ?: it.cidade,
+            modalidade = competicao.modalidade ?: it.modalidade,
+            sugestoesCompeticao = emptyList(),
+            competicaoBloqueada = null,
+        )
+    }
+
     fun atualizarModalidade(texto: String) = _uiState.update { it.copy(modalidade = texto) }
     fun atualizarCategoria(texto: String) = _uiState.update { it.copy(categoria = texto) }
     fun atualizarEquipeMandante(texto: String) = _uiState.update { it.copy(equipeMandante = texto) }
@@ -127,6 +169,19 @@ class JogoFormViewModel(
         )
     }
 
+    fun fecharAvisoCompeticaoEncerrada() = _uiState.update { it.copy(competicaoBloqueada = null) }
+
+    /** REGRA 8: reabre a competição bloqueada e tenta salvar de novo, sem o usuário precisar sair do formulário. */
+    fun reabrirCompeticaoESalvar() {
+        val bloqueada = _uiState.value.competicaoBloqueada ?: return
+        viewModelScope.launch {
+            competicaoRepository.reabrir(bloqueada)
+            competicoesConhecidas = competicaoRepository.observarCompeticoes().first()
+            _uiState.update { it.copy(competicaoBloqueada = null) }
+            salvar()
+        }
+    }
+
     /** REGRA 2/6: só DATA e VALOR são obrigatórios — todo o resto pode ficar em branco. */
     fun salvar() {
         val estado = _uiState.value
@@ -140,33 +195,52 @@ class JogoFormViewModel(
             return
         }
 
-        val jogo = Jogo(
-            id = if (estado.modo == ModoFormulario.NOVO) 0L else jogoId,
-            data = data,
-            horario = DateUtils.parseHora(estado.horarioTexto),
-            competicao = estado.competicao.trim().ifBlank { null },
-            modalidade = estado.modalidade.trim().ifBlank { null },
-            categoria = estado.categoria.trim().ifBlank { null },
-            equipeMandante = estado.equipeMandante.trim().ifBlank { null },
-            equipeVisitante = estado.equipeVisitante.trim().ifBlank { null },
-            cidade = estado.cidade.trim().ifBlank { null },
-            estadio = estado.estadio.trim().ifBlank { null },
-            funcao = estado.funcao.trim().ifBlank { null },
-            valorCentavos = estado.valorCentavos,
-            statusPagamento = estado.status,
-            dataRecebimento = if (estado.status == StatusPagamento.RECEBIDO) {
-                DateUtils.parseData(estado.dataRecebimentoTexto) ?: LocalDate.now()
-            } else {
-                null
-            },
-            observacoes = estado.observacoes.trim().ifBlank { null },
-            dataCriacao = estado.dataCriacaoOriginal ?: Instant.now(),
-        )
-
-        val quantidade = if (estado.permiteVariasPartidas) estado.quantidadePartidas else 1
-
         _uiState.update { it.copy(salvando = true) }
         viewModelScope.launch {
+            val nomeCompeticao = estado.competicao.trim()
+            var competicaoResolvida: Competicao? = null
+            // REGRA 3/16: resolve (reaproveita ou cria) a competição ANTES de salvar o jogo, para
+            // nunca gravar uma competição equivalente duplicada.
+            if (nomeCompeticao.isNotBlank()) {
+                competicaoResolvida = competicaoRepository.buscarOuCriar(
+                    nomeCompeticao,
+                    estado.cidade.trim().ifBlank { null },
+                    estado.modalidade.trim().ifBlank { null },
+                )
+                // REGRA 8: só bloqueia a criação de um jogo NOVO numa competição encerrada —
+                // editar um jogo já existente nunca fica travado por isso.
+                val criandoJogoNovo = estado.modo != ModoFormulario.EDITAR
+                if (criandoJogoNovo && competicaoResolvida.encerrada) {
+                    _uiState.update { it.copy(salvando = false, competicaoBloqueada = competicaoResolvida) }
+                    return@launch
+                }
+            }
+
+            val jogo = Jogo(
+                id = if (estado.modo == ModoFormulario.NOVO) 0L else jogoId,
+                data = data,
+                horario = DateUtils.parseHora(estado.horarioTexto),
+                competicao = competicaoResolvida?.nome ?: nomeCompeticao.ifBlank { null },
+                competicaoId = competicaoResolvida?.id,
+                modalidade = estado.modalidade.trim().ifBlank { null },
+                categoria = estado.categoria.trim().ifBlank { null },
+                equipeMandante = estado.equipeMandante.trim().ifBlank { null },
+                equipeVisitante = estado.equipeVisitante.trim().ifBlank { null },
+                cidade = estado.cidade.trim().ifBlank { null },
+                estadio = estado.estadio.trim().ifBlank { null },
+                funcao = estado.funcao.trim().ifBlank { null },
+                valorCentavos = estado.valorCentavos,
+                statusPagamento = estado.status,
+                dataRecebimento = if (estado.status == StatusPagamento.RECEBIDO) {
+                    DateUtils.parseData(estado.dataRecebimentoTexto) ?: LocalDate.now()
+                } else {
+                    null
+                },
+                observacoes = estado.observacoes.trim().ifBlank { null },
+                dataCriacao = estado.dataCriacaoOriginal ?: Instant.now(),
+            )
+
+            val quantidade = if (estado.permiteVariasPartidas) estado.quantidadePartidas else 1
             if (quantidade <= 1) {
                 repository.salvar(jogo)
             } else {

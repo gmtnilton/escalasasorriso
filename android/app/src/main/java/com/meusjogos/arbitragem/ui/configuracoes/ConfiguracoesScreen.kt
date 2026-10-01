@@ -198,8 +198,8 @@ fun ConfiguracoesScreen(
                 Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
                     Column {
                         ListItem(
-                            headlineContent = { Text("Escalas Árbitros — Versão 1.1") },
-                            supportingContent = { Text("Versão 1.1.0 — funciona 100% offline, seus dados ficam só no aparelho.") },
+                            headlineContent = { Text("Escalas Árbitros — Versão 1.2") },
+                            supportingContent = { Text("Versão 1.2.0 — funciona 100% offline, seus dados ficam só no aparelho.") },
                             leadingContent = { Icon(Icons.Filled.Info, contentDescription = null) },
                         )
                         ListItem(
