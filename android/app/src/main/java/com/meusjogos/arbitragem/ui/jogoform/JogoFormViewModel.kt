@@ -276,9 +276,10 @@ class JogoFormViewModel(
             val valorMudou = estado.modo == ModoFormulario.EDITAR &&
                 estado.valorOriginalCentavos != null &&
                 estado.valorOriginalCentavos != jogo.valorCentavos
-            if (valorMudou && jogo.competicaoId != null) {
+            val competicaoIdAtual = jogo.competicaoId
+            if (valorMudou && competicaoIdAtual != null) {
                 val outros = repository.listarPendentesMesmaCompeticaoEFuncao(
-                    competicaoId = jogo.competicaoId,
+                    competicaoId = competicaoIdAtual,
                     funcao = jogo.funcao,
                     excluirJogoId = jogo.id,
                 )
