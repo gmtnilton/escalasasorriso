@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Backup automático do Android (pré Android 12). O app também oferece seu
+   próprio backup/restauração manual (Configurações), então aqui só
+   habilitamos o backup padrão do banco de dados local.
+-->
+<full-backup-content>
+    <include domain="database" path="." />
+</full-backup-content>
