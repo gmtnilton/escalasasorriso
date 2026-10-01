@@ -61,14 +61,27 @@ fun List<Jogo>.resumoDaCompeticao(competicaoId: Long): ResumoCompeticao {
 /** Todos os jogos vinculados a uma competição (por id) — não cria, duplica nem altera nenhum jogo. */
 fun List<Jogo>.jogosDaCompeticaoId(competicaoId: Long): List<Jogo> = filter { it.competicaoId == competicaoId }
 
+/** Quantidade de jogos de uma competição, já com seu status — usado para colorir o chip "Por
+ * competição" em Jogos (🟢 em andamento / 🔴 encerrada, REGRA 17). */
+data class ContagemCompeticao(val id: Long, val nome: String, val quantidade: Int, val encerrada: Boolean)
+
 /** Quantidade de jogos por competição (REGRA do chip "Por competição" em Jogos) — agrupa por
  * [Jogo.competicaoId] (não por texto), então nunca conta duas competições equivalentes como
  * separadas. Jogos sem competição vinculada não entram na contagem. */
-fun List<Jogo>.contarPorCompeticaoId(): List<Triple<Long, String, Int>> =
-    filter { it.competicaoId != null && !it.competicao.isNullOrBlank() }
+fun List<Jogo>.contarPorCompeticaoComStatus(competicoes: List<Competicao>): List<ContagemCompeticao> {
+    val encerradaPorId = competicoes.associateBy({ it.id }, { it.encerrada })
+    return filter { it.competicaoId != null && !it.competicao.isNullOrBlank() }
         .groupBy { it.competicaoId!! }
-        .map { (id, jogosDoGrupo) -> Triple(id, jogosDoGrupo.first().competicao!!, jogosDoGrupo.size) }
-        .sortedByDescending { it.third }
+        .map { (id, jogosDoGrupo) ->
+            ContagemCompeticao(
+                id = id,
+                nome = jogosDoGrupo.first().competicao!!,
+                quantidade = jogosDoGrupo.size,
+                encerrada = encerradaPorId[id] ?: false,
+            )
+        }
+        .sortedByDescending { it.quantidade }
+}
 
 /** Marca uma competição como encerrada, registrando a data/hora (REGRA 8 da V1.2). */
 fun encerrarCompeticao(competicao: Competicao, agora: java.time.Instant = java.time.Instant.now()): Competicao =

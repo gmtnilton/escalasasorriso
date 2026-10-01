@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -163,7 +164,7 @@ fun CompeticaoDetailScreen(
     if (mostrarEncerrar) {
         ConfirmarEncerrarDialog(
             resumo = estado.resumo,
-            onConfirmar = { viewModel.encerrar(); mostrarEncerrar = false },
+            onConfirmar = { jaRecebeu -> viewModel.encerrar(jaRecebeu); mostrarEncerrar = false },
             onCancelar = { mostrarEncerrar = false },
         )
     }
@@ -323,7 +324,10 @@ private fun JogoDaCompeticaoItem(jogo: Jogo, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ConfirmarEncerrarDialog(resumo: ResumoCompeticao, onConfirmar: () -> Unit, onCancelar: () -> Unit) {
+private fun ConfirmarEncerrarDialog(resumo: ResumoCompeticao, onConfirmar: (jaRecebeu: Boolean) -> Unit, onCancelar: () -> Unit) {
+    var jaRecebeu by remember { mutableStateOf(false) }
+    val temPendente = resumo.valorPendenteCentavos > 0
+
     AlertDialog(
         onDismissRequest = onCancelar,
         title = { Text("Deseja realmente encerrar esta competição?") },
@@ -333,9 +337,18 @@ private fun ConfirmarEncerrarDialog(resumo: ResumoCompeticao, onConfirmar: () ->
                 LinhaResumo("Valor total", CurrencyUtils.formatar(resumo.valorTotalCentavos))
                 LinhaResumo("Recebido", CurrencyUtils.formatar(resumo.valorRecebidoCentavos))
                 LinhaResumo("Pendente", CurrencyUtils.formatar(resumo.valorPendenteCentavos))
+                if (temPendente) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp).clickable { jaRecebeu = !jaRecebeu },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(checked = jaRecebeu, onCheckedChange = { jaRecebeu = it })
+                        Text("Já recebi o pagamento pendente desta competição", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
             }
         },
-        confirmButton = { TextButton(onClick = onConfirmar) { Text("ENCERRAR COMPETIÇÃO") } },
+        confirmButton = { TextButton(onClick = { onConfirmar(jaRecebeu) }) { Text("ENCERRAR COMPETIÇÃO") } },
         dismissButton = { TextButton(onClick = onCancelar) { Text("CANCELAR") } },
     )
 }

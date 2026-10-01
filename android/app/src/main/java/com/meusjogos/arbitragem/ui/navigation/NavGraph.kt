@@ -123,7 +123,7 @@ fun MeusJogosNavGraph(
 
             composable(DestinoPrincipal.JOGOS.rota) {
                 val viewModel: JogosListViewModel = viewModel(
-                    factory = ViewModelFactory { JogosListViewModel(repository) },
+                    factory = ViewModelFactory { JogosListViewModel(repository, competicaoRepository) },
                 )
                 JogosListScreen(
                     viewModel = viewModel,

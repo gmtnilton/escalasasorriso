@@ -87,9 +87,21 @@ class CompeticaoDetailViewModel(
         }
     }
 
-    fun encerrar() {
+    /**
+     * Encerra a competição; quando [marcarComoRecebido] é true (usuário já marcou "já recebi o
+     * pagamento" na confirmação de encerramento), também marca de uma vez todos os jogos ainda
+     * pendentes como recebidos — evita precisar de um segundo toque em "RECEBIMENTO TOTAL".
+     */
+    fun encerrar(marcarComoRecebido: Boolean = false) {
         val competicao = uiState.value.competicao ?: return
-        viewModelScope.launch { competicaoRepository.encerrar(competicao) }
+        val pendentes = if (marcarComoRecebido) uiState.value.jogos.filter { !it.recebido } else emptyList()
+        viewModelScope.launch {
+            competicaoRepository.encerrar(competicao)
+            if (pendentes.isNotEmpty()) {
+                jogoRepository.marcarVariosComoRecebido(pendentes, LocalDate.now())
+                mensagem.value = "✓ Competição encerrada e pagamento marcado como recebido."
+            }
+        }
     }
 
     fun reabrir() {

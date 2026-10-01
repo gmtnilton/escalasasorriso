@@ -4,16 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meusjogos.arbitragem.core.logic.competicoesDisponiveis
 import com.meusjogos.arbitragem.core.logic.contarPorCidade
-import com.meusjogos.arbitragem.core.logic.contarPorCompeticaoId
+import com.meusjogos.arbitragem.core.logic.contarPorCompeticaoComStatus
 import com.meusjogos.arbitragem.core.logic.contarPorModalidade
 import com.meusjogos.arbitragem.core.logic.filtrarEPesquisar
 import com.meusjogos.arbitragem.core.logic.funcoesDisponiveis
 import com.meusjogos.arbitragem.core.logic.ordenarMaisRecentePrimeiro
+import com.meusjogos.arbitragem.core.logic.ContagemCompeticao
 import com.meusjogos.arbitragem.core.model.FiltroJogos
 import com.meusjogos.arbitragem.core.model.FiltroPeriodo
 import com.meusjogos.arbitragem.core.model.FiltroStatus
 import com.meusjogos.arbitragem.core.model.Jogo
 import com.meusjogos.arbitragem.core.model.StatusPagamento
+import com.meusjogos.arbitragem.data.repository.CompeticaoRepository
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,15 +34,23 @@ data class JogosListUiState(
     val totalSemFiltro: Int = 0,
     val contagemPorCidade: List<Pair<String, Int>> = emptyList(),
     val contagemPorModalidade: List<Pair<String, Int>> = emptyList(),
-    /** REGRA 13 da V1.2 — chip "Por competição", agrupado por id (nunca por texto duplicado). */
-    val contagemPorCompeticao: List<Triple<Long, String, Int>> = emptyList(),
+    /** REGRA 13/17 da V1.2 — chip "Por competição", agrupado por id (nunca por texto duplicado),
+     * já com o status de cada uma para colorir 🟢 em andamento / 🔴 encerrada. */
+    val contagemPorCompeticao: List<ContagemCompeticao> = emptyList(),
 )
 
-class JogosListViewModel(private val repository: JogoRepository) : ViewModel() {
+class JogosListViewModel(
+    private val repository: JogoRepository,
+    private val competicaoRepository: CompeticaoRepository,
+) : ViewModel() {
 
     private val filtro = MutableStateFlow(FiltroJogos())
 
-    val uiState: StateFlow<JogosListUiState> = combine(repository.observarJogos(), filtro) { jogos, filtroAtual ->
+    val uiState: StateFlow<JogosListUiState> = combine(
+        repository.observarJogos(),
+        competicaoRepository.observarCompeticoes(),
+        filtro,
+    ) { jogos, competicoes, filtroAtual ->
         val jogosFiltrados = jogos.filtrarEPesquisar(filtroAtual).ordenarMaisRecentePrimeiro()
         JogosListUiState(
             carregando = false,
@@ -51,7 +61,7 @@ class JogosListViewModel(private val repository: JogoRepository) : ViewModel() {
             totalSemFiltro = jogos.size,
             contagemPorCidade = jogosFiltrados.contarPorCidade(),
             contagemPorModalidade = jogosFiltrados.contarPorModalidade(),
-            contagemPorCompeticao = jogosFiltrados.contarPorCompeticaoId(),
+            contagemPorCompeticao = jogosFiltrados.contarPorCompeticaoComStatus(competicoes),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), JogosListUiState())
 

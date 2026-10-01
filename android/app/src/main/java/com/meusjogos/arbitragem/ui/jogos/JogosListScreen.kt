@@ -42,11 +42,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.meusjogos.arbitragem.core.logic.ContagemCompeticao
 import com.meusjogos.arbitragem.core.logic.jogosDaCidade
 import com.meusjogos.arbitragem.core.logic.jogosDaModalidade
 import com.meusjogos.arbitragem.core.util.DateUtils
 import com.meusjogos.arbitragem.ui.components.CampoDataTexto
 import com.meusjogos.arbitragem.ui.components.EmptyState
+import com.meusjogos.arbitragem.ui.theme.LocalStatusColors
 import java.time.LocalDate
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -254,10 +256,12 @@ fun JogosListScreen(
 }
 
 /** Contagem de jogos por competição (REGRA 13 da V1.2), em chips horizontalmente roláveis —
- * tocar num chip abre a tela da competição (resumo, jogos, encerrar, recebimento total...). */
+ * tocar num chip abre a tela da competição (resumo, jogos, encerrar, recebimento total...).
+ * Cor do chip indica o status (REGRA 17): 🟢 verde = em andamento, 🔴 vermelho = encerrada. */
 @Composable
-private fun LinhaContagemCompeticao(itens: List<Triple<Long, String, Int>>, onClick: (Long) -> Unit) {
+private fun LinhaContagemCompeticao(itens: List<ContagemCompeticao>, onClick: (Long) -> Unit) {
     if (itens.isEmpty()) return
+    val coresStatus = LocalStatusColors.current
     Column {
         Text(
             text = "Por competição",
@@ -269,16 +273,18 @@ private fun LinhaContagemCompeticao(itens: List<Triple<Long, String, Int>>, onCl
             modifier = Modifier.fillMaxWidth().padding(top = 6.dp).horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            itens.forEach { (id, nome, quantidade) ->
+            itens.forEach { item ->
+                val corFundo = if (item.encerrada) coresStatus.aReceberContainer else coresStatus.recebidoContainer
+                val corTexto = if (item.encerrada) coresStatus.aReceber else coresStatus.recebido
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.clickable { onClick(id) },
+                    color = corFundo,
+                    modifier = Modifier.clickable { onClick(item.id) },
                 ) {
                     Text(
-                        text = "🏆 $nome · $quantidade",
+                        text = "${if (item.encerrada) "🔴" else "🟢"} ${item.nome} · ${item.quantidade}",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = corTexto,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     )
                 }

@@ -2,7 +2,7 @@ package com.meusjogos.arbitragem.core
 
 import com.meusjogos.arbitragem.core.logic.agruparCompeticoesEquivalentes
 import com.meusjogos.arbitragem.core.logic.chaveNormalizadaCompeticao
-import com.meusjogos.arbitragem.core.logic.contarPorCompeticaoId
+import com.meusjogos.arbitragem.core.logic.contarPorCompeticaoComStatus
 import com.meusjogos.arbitragem.core.logic.encerrarCompeticao
 import com.meusjogos.arbitragem.core.logic.encontrarEquivalente
 import com.meusjogos.arbitragem.core.logic.marcarComoRecebido
@@ -110,18 +110,37 @@ class CompeticaoLogicaTest {
     }
 
     @Test
-    fun `contarPorCompeticaoId agrupa por id e nunca por texto duplicado`() {
+    fun `contarPorCompeticaoComStatus agrupa por id e nunca por texto duplicado`() {
         val jogos = listOf(
             jogoDaCompeticao(competicaoId = 1L, nome = "Copa Sorriso", valor = 1_000),
             jogoDaCompeticao(competicaoId = 1L, nome = "Copa Sorriso", valor = 1_000),
             jogoDaCompeticao(competicaoId = 2L, nome = "Copa Sinop", valor = 1_000),
             jogoDaCompeticao(competicaoId = null, nome = null, valor = 1_000),
         )
+        val competicoes = listOf(
+            Competicao(id = 1L, nome = "Copa Sorriso", status = StatusCompeticao.EM_ANDAMENTO),
+            Competicao(id = 2L, nome = "Copa Sinop", status = StatusCompeticao.ENCERRADA),
+        )
 
-        val contagem = jogos.contarPorCompeticaoId()
+        val contagem = jogos.contarPorCompeticaoComStatus(competicoes)
 
         assertEquals(2, contagem.size)
-        assertEquals(Triple(1L, "Copa Sorriso", 2), contagem.first())
+        assertEquals(1L, contagem[0].id)
+        assertEquals("Copa Sorriso", contagem[0].nome)
+        assertEquals(2, contagem[0].quantidade)
+        assertFalse(contagem[0].encerrada)
+        assertEquals(2L, contagem[1].id)
+        assertTrue(contagem[1].encerrada)
+    }
+
+    @Test
+    fun `contarPorCompeticaoComStatus trata competicao sem registro central como em andamento`() {
+        val jogos = listOf(jogoDaCompeticao(competicaoId = 1L, nome = "Copa Sorriso", valor = 1_000))
+
+        val contagem = jogos.contarPorCompeticaoComStatus(competicoes = emptyList())
+
+        assertEquals(1, contagem.size)
+        assertFalse(contagem.first().encerrada)
     }
 
     @Test

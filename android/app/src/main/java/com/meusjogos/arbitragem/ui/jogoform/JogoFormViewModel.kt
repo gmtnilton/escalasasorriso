@@ -129,9 +129,15 @@ class JogoFormViewModel(
     fun atualizarData(texto: String) = _uiState.update { it.copy(dataTexto = texto, erroData = null) }
     fun atualizarHorario(texto: String) = _uiState.update { it.copy(horarioTexto = texto) }
 
-    /** REGRA 6: a cada letra digitada, recalcula as sugestões que combinam com o texto. */
+    /** REGRA 6/17: a cada letra digitada, recalcula as sugestões que combinam com o texto —
+     * competições encerradas não são sugeridas (saem do "banco de cadastradas" para jogos novos),
+     * mas continuam podendo ser digitadas de propósito e reabertas se necessário. */
     fun atualizarCompeticao(texto: String) = _uiState.update {
-        it.copy(competicao = texto, sugestoesCompeticao = competicoesConhecidas.sugestoesPara(texto), competicaoBloqueada = null)
+        it.copy(
+            competicao = texto,
+            sugestoesCompeticao = competicoesConhecidas.filterNot { c -> c.encerrada }.sugestoesPara(texto),
+            competicaoBloqueada = null,
+        )
     }
 
     /** REGRA 4: ao tocar numa sugestão, preenche cidade e modalidade automaticamente. */
