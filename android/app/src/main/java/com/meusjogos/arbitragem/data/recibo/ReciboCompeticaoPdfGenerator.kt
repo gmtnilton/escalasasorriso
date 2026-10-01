@@ -132,7 +132,7 @@ class ReciboCompeticaoPdfGenerator {
             if (identificacao.isNotBlank()) linha(estado, "Modalidade / Cidade", identificacao)
         }
         linha(estado, "Quantidade de jogos pagos", recibo.quantidadeJogos.toString())
-        if (!recibo.descricao.isNullOrBlank()) linha(estado, "Descrição", recibo.descricao)
+        recibo.descricao?.takeIf(String::isNotBlank)?.let { linha(estado, "Descrição", it) }
     }
 
     private fun desenharListaJogos(estado: EstadoDocumento, jogos: List<Jogo>) {
