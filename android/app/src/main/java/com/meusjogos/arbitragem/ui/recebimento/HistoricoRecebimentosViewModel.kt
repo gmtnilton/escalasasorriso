@@ -2,15 +2,16 @@ package com.meusjogos.arbitragem.ui.recebimento
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.meusjogos.arbitragem.core.logic.ItemHistoricoRecebimento
+import com.meusjogos.arbitragem.core.logic.agruparHistoricoPorCompeticao
 import com.meusjogos.arbitragem.core.logic.cidadesDisponiveis
 import com.meusjogos.arbitragem.core.logic.competicoesDisponiveis
-import com.meusjogos.arbitragem.core.logic.filtrarHistoricoRecebimentos
 import com.meusjogos.arbitragem.core.logic.modalidadesDisponiveis
 import com.meusjogos.arbitragem.core.logic.recebidos
 import com.meusjogos.arbitragem.core.model.FiltroHistoricoRecebimentos
 import com.meusjogos.arbitragem.core.model.FiltroPeriodo
-import com.meusjogos.arbitragem.core.model.Jogo
 import com.meusjogos.arbitragem.core.model.OrdenacaoRecebimento
+import com.meusjogos.arbitragem.data.repository.CompeticaoRepository
 import com.meusjogos.arbitragem.data.repository.JogoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,7 +21,7 @@ import kotlinx.coroutines.flow.stateIn
 
 data class HistoricoRecebimentosUiState(
     val carregando: Boolean = true,
-    val jogosFiltrados: List<Jogo> = emptyList(),
+    val itens: List<ItemHistoricoRecebimento> = emptyList(),
     val filtro: FiltroHistoricoRecebimentos = FiltroHistoricoRecebimentos(),
     val competicoesDisponiveis: List<String> = emptyList(),
     val modalidadesDisponiveis: List<String> = emptyList(),
@@ -29,28 +30,33 @@ data class HistoricoRecebimentosUiState(
 )
 
 /**
- * Tela "HISTÓRICO DE VALORES RECEBIDOS" (VERSÃO 1.4, seção 2/4/5) — lista, filtra e ordena os
- * jogos já recebidos (cada um é um pagamento, já que este app registra um recebimento por jogo).
- * Só lê — nunca cria nem altera nenhum lançamento (REGRA 8 da seção 8). O recebimento individual,
- * a edição e o recibo em PDF continuam em JogoDetailScreen/GerarReciboScreen, sem duplicação.
+ * Tela "HISTÓRICO DE VALORES RECEBIDOS" (VERSÃO 1.4, seção 2/4/5) — organizada por competição
+ * (um card por competição, igual aos módulos "Competições em aberto"/"Competições encerradas a
+ * receber"), com busca, filtros e ordenação sobre os pagamentos (jogos recebidos, já que este app
+ * registra um recebimento por jogo). Só lê — nunca cria nem altera nenhum lançamento (REGRA 8 da
+ * seção 8). O recebimento individual, a edição e o recibo em PDF continuam em
+ * JogoDetailScreen/GerarReciboScreen, sem duplicação — acessados a partir da tela da competição.
  */
-class HistoricoRecebimentosViewModel(private val repository: JogoRepository) : ViewModel() {
+class HistoricoRecebimentosViewModel(
+    private val repository: JogoRepository,
+    private val competicaoRepository: CompeticaoRepository,
+) : ViewModel() {
 
     private val filtro = MutableStateFlow(FiltroHistoricoRecebimentos())
 
     val uiState: StateFlow<HistoricoRecebimentosUiState> = combine(
-        repository.observarJogos(), filtro,
-    ) { jogos, filtroAtual ->
+        repository.observarJogos(), competicaoRepository.observarCompeticoes(), filtro,
+    ) { jogos, competicoes, filtroAtual ->
         val recebidos = jogos.recebidos()
-        val filtrados = jogos.filtrarHistoricoRecebimentos(filtroAtual)
+        val itens = jogos.agruparHistoricoPorCompeticao(filtroAtual, competicoes)
         HistoricoRecebimentosUiState(
             carregando = false,
-            jogosFiltrados = filtrados,
+            itens = itens,
             filtro = filtroAtual,
             competicoesDisponiveis = recebidos.competicoesDisponiveis(),
             modalidadesDisponiveis = recebidos.modalidadesDisponiveis(),
             cidadesDisponiveis = recebidos.cidadesDisponiveis(),
-            totalFiltradoCentavos = filtrados.sumOf { it.valorCentavos },
+            totalFiltradoCentavos = itens.sumOf { it.valorRecebidoCentavos },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HistoricoRecebimentosUiState())
 

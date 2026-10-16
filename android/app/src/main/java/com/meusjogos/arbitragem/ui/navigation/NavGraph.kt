@@ -290,12 +290,12 @@ fun MeusJogosNavGraph(
 
             composable(Rotas.HISTORICO_RECEBIMENTOS) {
                 val viewModel: HistoricoRecebimentosViewModel = viewModel(
-                    factory = ViewModelFactory { HistoricoRecebimentosViewModel(repository) },
+                    factory = ViewModelFactory { HistoricoRecebimentosViewModel(repository, competicaoRepository) },
                 )
                 HistoricoRecebimentosScreen(
                     viewModel = viewModel,
                     onVoltar = { navController.popBackStack() },
-                    onJogoClick = { jogoId -> navController.navigate(Rotas.jogoDetail(jogoId)) },
+                    onVerCompeticao = { competicaoId -> navController.navigate(Rotas.competicaoDetail(competicaoId)) },
                 )
             }
         }

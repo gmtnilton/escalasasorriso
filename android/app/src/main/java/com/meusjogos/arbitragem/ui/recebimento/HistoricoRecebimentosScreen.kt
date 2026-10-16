@@ -1,6 +1,5 @@
 package com.meusjogos.arbitragem.ui.recebimento
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,9 +19,11 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,23 +43,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.meusjogos.arbitragem.core.model.Jogo
+import com.meusjogos.arbitragem.core.logic.ItemHistoricoRecebimento
 import com.meusjogos.arbitragem.core.util.CurrencyUtils
 import com.meusjogos.arbitragem.core.util.DateUtils
+import com.meusjogos.arbitragem.ui.competicao.LinhaInfoFinanceira
 import com.meusjogos.arbitragem.ui.components.EmptyState
 import com.meusjogos.arbitragem.ui.theme.LocalStatusColors
 
 /**
- * Tela "HISTÓRICO DE VALORES RECEBIDOS" (VERSÃO 1.4, seção 2/4/5) — um recebimento por linha
- * (cada jogo recebido é um pagamento neste app), com busca, filtros e ordenação. Tocar numa linha
- * abre o detalhe do jogo (edição, recibo em PDF) sem duplicar nenhuma dessas telas.
+ * Tela "HISTÓRICO DE VALORES RECEBIDOS" (VERSÃO 1.4, seção 2/4/5) — organizada por competição, um
+ * card por competição (mesma organização dos módulos "Competições em aberto"/"Competições
+ * encerradas a receber"), com busca, filtros e ordenação. Tocar em "VER COMPETIÇÃO" abre a tela da
+ * competição já existente, de onde cada jogo recebido pode ser aberto (edição, recibo em PDF),
+ * sem duplicar nenhuma dessas telas.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoricoRecebimentosScreen(
     viewModel: HistoricoRecebimentosViewModel,
     onVoltar: () -> Unit,
-    onJogoClick: (Long) -> Unit,
+    onVerCompeticao: (Long) -> Unit,
 ) {
     val estado by viewModel.uiState.collectAsState()
     val coresStatus = LocalStatusColors.current
@@ -103,7 +107,7 @@ fun HistoricoRecebimentosScreen(
                 }
             }
 
-            if (estado.jogosFiltrados.isNotEmpty()) {
+            if (estado.itens.isNotEmpty()) {
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -114,7 +118,7 @@ fun HistoricoRecebimentosScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = "${estado.jogosFiltrados.size} ${if (estado.jogosFiltrados.size == 1) "pagamento" else "pagamentos"}",
+                            text = "${estado.itens.size} ${if (estado.itens.size == 1) "competição" else "competições"}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -132,7 +136,7 @@ fun HistoricoRecebimentosScreen(
                 estado.carregando -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-                estado.jogosFiltrados.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                estado.itens.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     EmptyState(
                         icone = Icons.Filled.CheckCircle,
                         titulo = "Nenhum recebimento encontrado",
@@ -144,8 +148,11 @@ fun HistoricoRecebimentosScreen(
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    items(estado.jogosFiltrados, key = { it.id }) { jogo ->
-                        RecebimentoHistoricoItem(jogo = jogo, onClick = { onJogoClick(jogo.id) })
+                    items(estado.itens, key = { it.competicaoId ?: it.nome }) { item ->
+                        CompeticaoRecebidaCard(
+                            item = item,
+                            onVerCompeticao = item.competicaoId?.let { id -> { onVerCompeticao(id) } },
+                        )
                     }
                 }
             }
@@ -169,23 +176,21 @@ fun HistoricoRecebimentosScreen(
     }
 }
 
+/**
+ * Card de uma competição no histórico de valores recebidos — mesmo padrão visual dos cards de
+ * "Competições em aberto"/"Competições encerradas a receber" (título, subtítulo, status, divisor,
+ * linhas de informação, botão), com os campos específicos de recebimento (quantidade de
+ * pagamentos, valor recebido no filtro atual, data do último pagamento).
+ */
 @Composable
-private fun RecebimentoHistoricoItem(jogo: Jogo, onClick: () -> Unit) {
+private fun CompeticaoRecebidaCard(item: ItemHistoricoRecebimento, onVerCompeticao: (() -> Unit)?) {
     val coresStatus = LocalStatusColors.current
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "⚽ ${jogo.confronto ?: "Escala Arbitragem"}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
+    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Text(item.nome, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             val subtitulo = listOfNotNull(
-                jogo.competicao?.takeIf(String::isNotBlank),
-                jogo.modalidade?.takeIf(String::isNotBlank),
-                jogo.cidade?.takeIf(String::isNotBlank),
+                item.cidade?.takeIf(String::isNotBlank),
+                item.modalidade?.takeIf(String::isNotBlank),
             ).joinToString(" • ")
             if (subtitulo.isNotBlank()) {
                 Text(
@@ -196,27 +201,42 @@ private fun RecebimentoHistoricoItem(jogo: Jogo, onClick: () -> Unit) {
                 )
             }
             Text(
-                text = "Jogo em ${DateUtils.formatarData(jogo.data)}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 6.dp),
+                text = when {
+                    item.competicaoId == null -> "📄 SEM COMPETIÇÃO VINCULADA"
+                    item.encerrada -> "🔴 ENCERRADA"
+                    else -> "🟢 EM ANDAMENTO"
+                },
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = if (item.competicaoId == null) MaterialTheme.colorScheme.onSurfaceVariant else coresStatus.recebido,
+                modifier = Modifier.padding(top = 8.dp),
             )
-            jogo.dataRecebimento?.let {
+            item.ultimoPagamento?.let {
                 Text(
-                    text = "Pago em ${DateUtils.formatarData(it)}",
+                    text = "Último pagamento em ${DateUtils.formatarData(it)}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = coresStatus.recebido,
-                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 2.dp),
                 )
             }
-            Text(
-                text = CurrencyUtils.formatar(jogo.valorCentavos),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = coresStatus.recebido,
-                modifier = Modifier.padding(top = 8.dp),
+
+            Divider(modifier = Modifier.padding(vertical = 12.dp))
+
+            LinhaInfoFinanceira(
+                rotulo = if (item.quantidadeJogos == 1) "Pagamento" else "Pagamentos",
+                valor = item.quantidadeJogos.toString(),
             )
+            LinhaInfoFinanceira(
+                rotulo = "Valor recebido",
+                valor = CurrencyUtils.formatar(item.valorRecebidoCentavos),
+                cor = coresStatus.recebido,
+            )
+
+            if (onVerCompeticao != null) {
+                Button(onClick = onVerCompeticao, modifier = Modifier.fillMaxWidth().padding(top = 14.dp)) {
+                    Text("VER COMPETIÇÃO")
+                }
+            }
         }
     }
 }
