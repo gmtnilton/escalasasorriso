@@ -2,6 +2,7 @@ package com.meusjogos.arbitragem.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.meusjogos.arbitragem.core.logic.encerradasComPendencia
 import com.meusjogos.arbitragem.core.logic.quantidadeAReceber
 import com.meusjogos.arbitragem.core.logic.quantidadeRecebidos
 import com.meusjogos.arbitragem.core.logic.resumoDoMes
@@ -30,6 +31,10 @@ data class DashboardUiState(
      * logo após a quantidade total de jogos. */
     val competicoesAbertas: Int = 0,
     val competicoesEncerradas: Int = 0,
+    /** VERSÃO 1.3, seções 3/6/7 — soma dos saldos pendentes SÓ das competições já ENCERRADAS
+     * (independente do total geral a receber, que inclui também as em andamento) e quantas são. */
+    val valorPendenteCompeticoesEncerradasCentavos: Long = 0L,
+    val quantidadeCompeticoesEncerradasPendentes: Int = 0,
     val resumoPeriodoAtual: ResumoPeriodo = ResumoPeriodo(0, 0, 0),
     val rotuloPeriodoAtual: String = "",
 )
@@ -44,6 +49,7 @@ class DashboardViewModel(
         competicaoRepository.observarCompeticoes(),
     ) { jogos, competicoes ->
         val hoje = LocalDate.now()
+        val encerradasPendentes = competicoes.encerradasComPendencia(jogos)
         DashboardUiState(
             carregando = false,
             totalAReceberCentavos = jogos.totalAReceberCentavos(),
@@ -54,6 +60,8 @@ class DashboardViewModel(
             jogosAReceber = jogos.quantidadeAReceber(),
             competicoesAbertas = competicoes.count { !it.encerrada },
             competicoesEncerradas = competicoes.count { it.encerrada },
+            valorPendenteCompeticoesEncerradasCentavos = encerradasPendentes.sumOf { it.resumo.valorPendenteCentavos },
+            quantidadeCompeticoesEncerradasPendentes = encerradasPendentes.size,
             resumoPeriodoAtual = jogos.resumoDoMes(hoje.year, hoje.monthValue),
             rotuloPeriodoAtual = DateUtils.nomeMesAno(hoje.year, hoje.monthValue),
         )

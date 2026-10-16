@@ -32,6 +32,8 @@ import com.meusjogos.arbitragem.ui.competicao.CompeticaoDetailScreen
 import com.meusjogos.arbitragem.ui.competicao.CompeticaoDetailViewModel
 import com.meusjogos.arbitragem.ui.competicao.CompeticaoReciboScreen
 import com.meusjogos.arbitragem.ui.competicao.CompeticaoReciboViewModel
+import com.meusjogos.arbitragem.ui.competicao.CompeticoesEncerradasPendentesScreen
+import com.meusjogos.arbitragem.ui.competicao.CompeticoesEncerradasPendentesViewModel
 import com.meusjogos.arbitragem.ui.configuracoes.ConfiguracoesScreen
 import com.meusjogos.arbitragem.ui.configuracoes.ConfiguracoesViewModel
 import com.meusjogos.arbitragem.ui.dashboard.DashboardScreen
@@ -118,7 +120,11 @@ fun MeusJogosNavGraph(
                 val viewModel: DashboardViewModel = viewModel(
                     factory = ViewModelFactory { DashboardViewModel(repository, competicaoRepository) },
                 )
-                DashboardScreen(viewModel = viewModel, contentPadding = paddingInterno)
+                DashboardScreen(
+                    viewModel = viewModel,
+                    contentPadding = paddingInterno,
+                    onCompeticoesEncerradasPendentesClick = { navController.navigate(Rotas.COMPETICOES_ENCERRADAS_PENDENTES) },
+                )
             }
 
             composable(DestinoPrincipal.JOGOS.rota) {
@@ -251,6 +257,17 @@ fun MeusJogosNavGraph(
                 CompeticaoReciboScreen(
                     viewModel = viewModel,
                     onVoltar = { navController.popBackStack() },
+                )
+            }
+
+            composable(Rotas.COMPETICOES_ENCERRADAS_PENDENTES) {
+                val viewModel: CompeticoesEncerradasPendentesViewModel = viewModel(
+                    factory = ViewModelFactory { CompeticoesEncerradasPendentesViewModel(repository, competicaoRepository) },
+                )
+                CompeticoesEncerradasPendentesScreen(
+                    viewModel = viewModel,
+                    onVoltar = { navController.popBackStack() },
+                    onVerCompeticao = { competicaoId -> navController.navigate(Rotas.competicaoDetail(competicaoId)) },
                 )
             }
         }

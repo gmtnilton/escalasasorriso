@@ -120,7 +120,12 @@ fun CompeticaoDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 item {
-                    CabecalhoCompeticaoCard(nome = competicao.nome, subtitulo = competicao.subtitulo, encerrada = competicao.encerrada)
+                    CabecalhoCompeticaoCard(
+                        nome = competicao.nome,
+                        subtitulo = competicao.subtitulo,
+                        encerrada = competicao.encerrada,
+                        totalmenteRecebida = competicao.encerrada && estado.resumo.totalJogos > 0 && estado.resumo.valorPendenteCentavos == 0L,
+                    )
                 }
 
                 item { ResumoCompeticaoCard(estado.resumo) }
@@ -128,7 +133,7 @@ fun CompeticaoDetailScreen(
                 item {
                     BotoesAcaoCompeticao(
                         encerrada = competicao.encerrada,
-                        temPendente = estado.resumo.valorPendenteCentavos > 0,
+                        valorPendenteCentavos = estado.resumo.valorPendenteCentavos,
                         temRecibo = estado.temRecibo,
                         algumRecebido = estado.resumo.jogosRecebidos > 0,
                         processando = estado.processando,
@@ -197,7 +202,7 @@ fun CompeticaoDetailScreen(
 }
 
 @Composable
-private fun CabecalhoCompeticaoCard(nome: String, subtitulo: String?, encerrada: Boolean) {
+private fun CabecalhoCompeticaoCard(nome: String, subtitulo: String?, encerrada: Boolean, totalmenteRecebida: Boolean) {
     Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(nome, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -206,7 +211,10 @@ private fun CabecalhoCompeticaoCard(nome: String, subtitulo: String?, encerrada:
             }
             Row(modifier = Modifier.padding(top = 12.dp)) {
                 if (encerrada) {
-                    StatusTextoChip(texto = "🔴 ENCERRADA", cor = MaterialTheme.colorScheme.error)
+                    // REGRA 10 da V1.3: encerrada + sem pendência vira um status próprio, mas a
+                    // competição continua acessível normalmente (nunca sai do histórico).
+                    val texto = if (totalmenteRecebida) "🔴 ENCERRADA — TOTALMENTE RECEBIDA" else "🔴 ENCERRADA"
+                    StatusTextoChip(texto = texto, cor = MaterialTheme.colorScheme.error)
                 } else {
                     val coresStatus = LocalStatusColors.current
                     StatusTextoChip(texto = "🟢 EM ANDAMENTO", cor = coresStatus.recebido)
@@ -252,7 +260,7 @@ private fun LinhaResumo(rotulo: String, valor: String, cor: androidx.compose.ui.
 @Composable
 private fun BotoesAcaoCompeticao(
     encerrada: Boolean,
-    temPendente: Boolean,
+    valorPendenteCentavos: Long,
     temRecibo: Boolean,
     algumRecebido: Boolean,
     processando: Boolean,
@@ -267,13 +275,13 @@ private fun BotoesAcaoCompeticao(
             Button(onClick = onNovoJogo, modifier = Modifier.fillMaxWidth()) { Text("➕ Novo jogo") }
             OutlinedButton(onClick = onEncerrar, modifier = Modifier.fillMaxWidth()) { Text("🔒 Encerrar competição") }
         } else {
-            if (temPendente) {
+            if (valorPendenteCentavos > 0) {
                 Button(
                     onClick = onReceber,
                     enabled = !processando,
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("💰 RECEBIMENTO TOTAL DA COMPETIÇÃO") }
+                ) { Text("RECEBER SALDO PENDENTE — ${CurrencyUtils.formatar(valorPendenteCentavos)}") }
             }
             if (algumRecebido) {
                 OutlinedButton(onClick = onGerarRecibo, modifier = Modifier.fillMaxWidth()) {

@@ -4,6 +4,7 @@ import com.meusjogos.arbitragem.core.logic.agruparCompeticoesEquivalentes
 import com.meusjogos.arbitragem.core.logic.chaveNormalizadaCompeticao
 import com.meusjogos.arbitragem.core.logic.contarPorCompeticaoComStatus
 import com.meusjogos.arbitragem.core.logic.encerrarCompeticao
+import com.meusjogos.arbitragem.core.logic.encerradasComPendencia
 import com.meusjogos.arbitragem.core.logic.encontrarEquivalente
 import com.meusjogos.arbitragem.core.logic.marcarComoRecebido
 import com.meusjogos.arbitragem.core.logic.reabrirCompeticao
@@ -180,6 +181,44 @@ class CompeticaoLogicaTest {
     fun `agruparCompeticoesEquivalentes ignora linhas sem nome`() {
         val linhas = listOf(Triple<String?, String?, String?>(null, "Sorriso", "Futebol"), Triple("", "Sorriso", "Futebol"))
         assertTrue(linhas.agruparCompeticoesEquivalentes().isEmpty())
+    }
+
+    @Test
+    fun `encerradasComPendencia inclui so encerradas com saldo pendente - cenarios A B C E da V1_3`() {
+        val encerradaComPendenciaTotal = Competicao(id = 1L, nome = "Copa A", status = StatusCompeticao.ENCERRADA) // cenário A
+        val encerradaParcial = Competicao(id = 2L, nome = "Copa B", status = StatusCompeticao.ENCERRADA) // cenário B
+        val encerradaQuitada = Competicao(id = 3L, nome = "Copa C", status = StatusCompeticao.ENCERRADA) // cenário C
+        val emAndamentoComPendencia = Competicao(id = 4L, nome = "Copa D", status = StatusCompeticao.EM_ANDAMENTO) // cenário E
+
+        val jogos = listOf(
+            jogoDaCompeticao(competicaoId = 1L, valor = 20_000, recebido = false),
+            jogoDaCompeticao(competicaoId = 2L, valor = 10_000, recebido = true),
+            jogoDaCompeticao(competicaoId = 2L, valor = 10_000, recebido = false),
+            jogoDaCompeticao(competicaoId = 3L, valor = 15_000, recebido = true),
+            jogoDaCompeticao(competicaoId = 4L, valor = 50_000, recebido = false),
+        )
+        val competicoes = listOf(encerradaComPendenciaTotal, encerradaParcial, encerradaQuitada, emAndamentoComPendencia)
+
+        val pendentes = competicoes.encerradasComPendencia(jogos)
+
+        assertEquals(2, pendentes.size) // só as encerradas 1 e 2 — nunca a 3 (quitada) nem a 4 (em andamento)
+        assertEquals(1L, pendentes[0].competicao.id) // maior saldo pendente primeiro
+        assertEquals(20_000L, pendentes[0].resumo.valorPendenteCentavos)
+        assertEquals(2L, pendentes[1].competicao.id)
+        assertEquals(10_000L, pendentes[1].resumo.valorPendenteCentavos) // só o saldo restante, não o total
+    }
+
+    @Test
+    fun `encerradasComPendencia some da lista quando o saldo chega a zero - cenario D`() {
+        val competicao = Competicao(id = 1L, nome = "Copa A", status = StatusCompeticao.ENCERRADA)
+        val jogoPendente = jogoDaCompeticao(competicaoId = 1L, valor = 20_000, recebido = false)
+
+        val antesDoRecebimento = listOf(competicao).encerradasComPendencia(listOf(jogoPendente))
+        assertEquals(1, antesDoRecebimento.size)
+
+        val jogoRecebido = marcarComoRecebido(jogoPendente, LocalDate.of(2026, 9, 2))
+        val depoisDoRecebimento = listOf(competicao).encerradasComPendencia(listOf(jogoRecebido))
+        assertTrue(depoisDoRecebimento.isEmpty())
     }
 
     private fun jogoDaCompeticao(competicaoId: Long?, valor: Long, recebido: Boolean = false, nome: String? = "Competição"): Jogo {

@@ -55,4 +55,9 @@ data class ResumoCompeticao(
     companion object {
         val VAZIO = ResumoCompeticao(0, 0, 0, 0, 0, 0)
     }
+
+    /** Fração já recebida (0f a 1f) — usada para a barra/percentual na lista de competições
+     * encerradas a receber (VERSÃO 1.3). Sem jogos, considera 0 (nada a mostrar). */
+    val percentualRecebido: Float
+        get() = if (valorTotalCentavos > 0) valorRecebidoCentavos.toFloat() / valorTotalCentavos.toFloat() else 0f
 }

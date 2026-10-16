@@ -91,6 +91,22 @@ fun encerrarCompeticao(competicao: Competicao, agora: java.time.Instant = java.t
 fun reabrirCompeticao(competicao: Competicao): Competicao =
     competicao.copy(status = StatusCompeticao.PADRAO, dataEncerramento = null)
 
+/** Uma competição ENCERRADA junto com seu resumo financeiro — usada no painel "Competições
+ * encerradas a receber" e no card do Início (VERSÃO 1.3). */
+data class CompeticaoComResumo(val competicao: Competicao, val resumo: ResumoCompeticao)
+
+/**
+ * Competições ENCERRADAS que ainda têm saldo pendente (VERSÃO 1.3, seção 3/4/6) — nunca inclui
+ * competições em andamento (REGRA 6), nem encerradas já totalmente recebidas (REGRA 5). Reaproveita
+ * [resumoDaCompeticao] (mesma fonte de verdade usada em toda a tela da competição), então o total
+ * aqui nunca pode divergir ou contar um pagamento duas vezes (REGRA 7/10).
+ */
+fun List<Competicao>.encerradasComPendencia(jogos: List<Jogo>): List<CompeticaoComResumo> =
+    filter { it.encerrada }
+        .map { competicao -> CompeticaoComResumo(competicao, jogos.resumoDaCompeticao(competicao.id)) }
+        .filter { it.resumo.valorPendenteCentavos > 0 }
+        .sortedByDescending { it.resumo.valorPendenteCentavos }
+
 // ---------------------------------------------------------------------
 // Agrupamento por texto bruto (usado na migração de dados existentes e na
 // unificação ao editar) — generaliza o mesmo padrão de

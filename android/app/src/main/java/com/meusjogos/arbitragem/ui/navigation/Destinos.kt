@@ -50,6 +50,10 @@ object Rotas {
     const val COMPETICAO_RECIBO_BASE = "competicao_recibo"
     const val COMPETICAO_RECIBO = "$COMPETICAO_RECIBO_BASE/{$ARG_COMPETICAO_ID}"
 
+    /** Lista "COMPETIÇÕES ENCERRADAS A RECEBER" (VERSÃO 1.3) — sem argumentos, sempre recalculada
+     * a partir dos dados atuais. */
+    const val COMPETICOES_ENCERRADAS_PENDENTES = "competicoes_encerradas_pendentes"
+
     /** id = 0 -> cadastro ultrarrápido de um jogo novo. */
     fun jogoFormNovo(): String = "$JOGO_FORM_BASE?$ARG_JOGO_ID=0&$ARG_DUPLICADO=false&$ARG_COMPETICAO_PRESELECIONADA=0"
 
