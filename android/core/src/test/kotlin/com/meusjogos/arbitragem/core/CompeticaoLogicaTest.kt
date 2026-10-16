@@ -110,6 +110,21 @@ class CompeticaoLogicaTest {
         val resumo = emptyList<Jogo>().resumoDaCompeticao(99L)
         assertEquals(0, resumo.totalJogos)
         assertEquals(0L, resumo.valorTotalCentavos)
+        assertTrue(resumo.porFuncao.isEmpty())
+    }
+
+    @Test
+    fun `resumoDaCompeticao traz a quantidade de jogos por funcao - correcao pos entrega`() {
+        val jogos = listOf(
+            jogoDaCompeticao(competicaoId = 1L, valor = 1_000, funcao = "Árbitro"),
+            jogoDaCompeticao(competicaoId = 1L, valor = 1_000, funcao = "Árbitro"),
+            jogoDaCompeticao(competicaoId = 1L, valor = 1_000, funcao = "Assistente"),
+            jogoDaCompeticao(competicaoId = 2L, valor = 1_000, funcao = "Árbitro"), // outra competição
+        )
+
+        val resumo = jogos.resumoDaCompeticao(1L)
+
+        assertEquals(listOf("Árbitro" to 2, "Assistente" to 1), resumo.porFuncao)
     }
 
     @Test
@@ -267,9 +282,15 @@ class CompeticaoLogicaTest {
         assertEquals(0L, quitada.resumo.valorPendenteCentavos)
     }
 
-    private fun jogoDaCompeticao(competicaoId: Long?, valor: Long, recebido: Boolean = false, nome: String? = "Competição"): Jogo {
+    private fun jogoDaCompeticao(
+        competicaoId: Long?,
+        valor: Long,
+        recebido: Boolean = false,
+        nome: String? = "Competição",
+        funcao: String? = null,
+    ): Jogo {
         val data = LocalDate.of(2026, 9, 1)
-        val base = Jogo(data = data, valorCentavos = valor, competicao = nome, competicaoId = competicaoId)
+        val base = Jogo(data = data, valorCentavos = valor, competicao = nome, competicaoId = competicaoId, funcao = funcao)
         return if (recebido) marcarComoRecebido(base, data) else base
     }
 }

@@ -156,6 +156,18 @@ class HistoricoRecebimentosLogicaTest {
         assertEquals(1_000L, itens.single().valorRecebidoCentavos)
     }
 
+    @Test
+    fun `agruparHistoricoPorCompeticao traz a quantidade de pagamentos por funcao - correcao pos entrega`() {
+        val copaA = Competicao(id = 1L, nome = "Copa A")
+        val arbitro1 = marcarComoRecebido(jogo(valor = 1_000, competicao = "Copa A", competicaoId = 1L, funcao = "Árbitro"), LocalDate.of(2026, 9, 1))
+        val arbitro2 = marcarComoRecebido(jogo(valor = 1_000, competicao = "Copa A", competicaoId = 1L, funcao = "Árbitro"), LocalDate.of(2026, 9, 2))
+        val assistente = marcarComoRecebido(jogo(valor = 1_000, competicao = "Copa A", competicaoId = 1L, funcao = "Assistente"), LocalDate.of(2026, 9, 3))
+
+        val itens = listOf(arbitro1, arbitro2, assistente).agruparHistoricoPorCompeticao(FiltroHistoricoRecebimentos(), listOf(copaA))
+
+        assertEquals(listOf("Árbitro" to 2, "Assistente" to 1), itens.single().porFuncao)
+    }
+
     private fun jogo(
         data: LocalDate = LocalDate.of(2026, 9, 1),
         valor: Long,
@@ -163,5 +175,6 @@ class HistoricoRecebimentosLogicaTest {
         cidade: String? = null,
         modalidade: String? = null,
         competicaoId: Long? = null,
-    ): Jogo = Jogo(data = data, valorCentavos = valor, competicao = competicao, cidade = cidade, modalidade = modalidade, competicaoId = competicaoId)
+        funcao: String? = null,
+    ): Jogo = Jogo(data = data, valorCentavos = valor, competicao = competicao, cidade = cidade, modalidade = modalidade, competicaoId = competicaoId, funcao = funcao)
 }

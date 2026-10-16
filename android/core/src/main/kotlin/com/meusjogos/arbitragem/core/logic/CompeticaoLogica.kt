@@ -55,6 +55,7 @@ fun List<Jogo>.resumoDaCompeticao(competicaoId: Long): ResumoCompeticao {
         valorTotalCentavos = recebidoCentavos + aReceberCentavos,
         valorRecebidoCentavos = recebidoCentavos,
         valorPendenteCentavos = aReceberCentavos,
+        porFuncao = doCompeticao.contarPorFuncao(),
     )
 }
 

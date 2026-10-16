@@ -57,6 +57,9 @@ data class ItemHistoricoRecebimento(
     val valorRecebidoCentavos: Long,
     val quantidadeJogos: Int,
     val ultimoPagamento: LocalDate?,
+    /** Quantidade de pagamentos (dentro do filtro atual) por função — mesmo padrão exibido nos
+     * demais módulos que mostram competições. */
+    val porFuncao: List<Pair<String, Int>> = emptyList(),
 )
 
 /**
@@ -87,6 +90,7 @@ fun List<Jogo>.agruparHistoricoPorCompeticao(
                 valorRecebidoCentavos = jogosDoGrupo.sumOf { it.valorCentavos },
                 quantidadeJogos = jogosDoGrupo.size,
                 ultimoPagamento = jogosDoGrupo.mapNotNull { it.dataRecebimento }.maxOrNull(),
+                porFuncao = jogosDoGrupo.contarPorFuncao(),
             )
         }
 

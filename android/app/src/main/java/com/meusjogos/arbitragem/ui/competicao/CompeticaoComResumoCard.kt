@@ -65,6 +65,9 @@ fun CompeticaoComResumoCard(
             Divider(modifier = Modifier.padding(vertical = 12.dp))
 
             LinhaInfoFinanceira("Jogos", resumo.totalJogos.toString())
+            resumo.porFuncao.forEach { (funcao, quantidade) ->
+                LinhaInfoFinanceira("  • $funcao", quantidade.toString(), MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             LinhaInfoFinanceira("Jogos recebidos", resumo.jogosRecebidos.toString(), coresStatus.recebido)
             LinhaInfoFinanceira("Jogos pendentes", resumo.jogosPendentes.toString(), coresStatus.aReceber)
 

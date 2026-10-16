@@ -51,6 +51,10 @@ data class ResumoCompeticao(
     val valorTotalCentavos: Long,
     val valorRecebidoCentavos: Long,
     val valorPendenteCentavos: Long,
+    /** Quantidade de jogos por função (ex.: Árbitro 10, Anotador 2) — mostrada em toda tela que
+     * já exibe este resumo (detalhe da competição, módulos de pendência e de valores recebidos),
+     * sem nenhuma consulta extra ao banco. */
+    val porFuncao: List<Pair<String, Int>> = emptyList(),
 ) {
     companion object {
         val VAZIO = ResumoCompeticao(0, 0, 0, 0, 0, 0)

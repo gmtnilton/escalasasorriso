@@ -226,6 +226,9 @@ private fun CompeticaoRecebidaCard(item: ItemHistoricoRecebimento, onVerCompetic
                 rotulo = if (item.quantidadeJogos == 1) "Pagamento" else "Pagamentos",
                 valor = item.quantidadeJogos.toString(),
             )
+            item.porFuncao.forEach { (funcao, quantidade) ->
+                LinhaInfoFinanceira("  • $funcao", quantidade.toString(), MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             LinhaInfoFinanceira(
                 rotulo = "Valor recebido",
                 valor = CurrencyUtils.formatar(item.valorRecebidoCentavos),

@@ -199,7 +199,7 @@ fun ConfiguracoesScreen(
                     Column {
                         ListItem(
                             headlineContent = { Text("Escalas Árbitros — Versão 1.4") },
-                            supportingContent = { Text("Versão 1.4.2 — funciona 100% offline, seus dados ficam só no aparelho.") },
+                            supportingContent = { Text("Versão 1.4.3 — funciona 100% offline, seus dados ficam só no aparelho.") },
                             leadingContent = { Icon(Icons.Filled.Info, contentDescription = null) },
                         )
                         ListItem(
