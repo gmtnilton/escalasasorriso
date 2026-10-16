@@ -2,6 +2,7 @@ package com.meusjogos.arbitragem.core
 
 import com.meusjogos.arbitragem.core.logic.cidadesDisponiveis
 import com.meusjogos.arbitragem.core.logic.contarPorCidade
+import com.meusjogos.arbitragem.core.logic.contarPorFuncao
 import com.meusjogos.arbitragem.core.logic.contarPorModalidade
 import com.meusjogos.arbitragem.core.logic.estatisticas
 import com.meusjogos.arbitragem.core.logic.jogosDaCidade
@@ -153,5 +154,19 @@ class TotaisTest {
         val contagem = jogos.contarPorModalidade()
 
         assertEquals(listOf("Futebol de Campo" to 3, "Futsal" to 1), contagem)
+    }
+
+    @Test
+    fun `contagem por funcao ignora vazios e ordena da mais frequente para a menos`() {
+        val jogos = listOf(
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, funcao = "Assistente"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, funcao = "Árbitro"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, funcao = "Árbitro"),
+            Jogo(data = LocalDate.now(), valorCentavos = 1_000, funcao = null),
+        )
+
+        val contagem = jogos.contarPorFuncao()
+
+        assertEquals(listOf("Árbitro" to 2, "Assistente" to 1), contagem)
     }
 }

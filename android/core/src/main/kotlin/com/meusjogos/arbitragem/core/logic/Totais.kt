@@ -141,6 +141,15 @@ fun List<Jogo>.contarPorModalidade(): List<Pair<String, Int>> =
         .toList()
         .sortedByDescending { it.second }
 
+/** Quantidade de jogos por função (árbitro, assistente, anotador, ...), da mais frequente para a
+ * menos — usada no resumo da tela da competição. */
+fun List<Jogo>.contarPorFuncao(): List<Pair<String, Int>> =
+    mapNotNull { it.funcao?.takeIf(String::isNotBlank) }
+        .groupingBy { it }
+        .eachCount()
+        .toList()
+        .sortedByDescending { it.second }
+
 /** Quantidade de jogos por competição (não vazias), da mais frequente para a menos. */
 fun List<Jogo>.contarPorCompeticao(): List<Pair<String, Int>> =
     mapNotNull { it.competicao?.takeIf(String::isNotBlank) }

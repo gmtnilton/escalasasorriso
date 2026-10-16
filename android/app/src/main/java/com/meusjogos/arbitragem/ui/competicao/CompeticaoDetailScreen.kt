@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.meusjogos.arbitragem.core.logic.contarPorFuncao
 import com.meusjogos.arbitragem.core.model.Jogo
 import com.meusjogos.arbitragem.core.model.ResumoCompeticao
 import com.meusjogos.arbitragem.core.util.CurrencyUtils
@@ -128,7 +129,7 @@ fun CompeticaoDetailScreen(
                     )
                 }
 
-                item { ResumoCompeticaoCard(estado.resumo) }
+                item { ResumoCompeticaoCard(estado.resumo, estado.jogos) }
 
                 item {
                     BotoesAcaoCompeticao(
@@ -230,14 +231,18 @@ private fun StatusTextoChip(texto: String, cor: androidx.compose.ui.graphics.Col
 }
 
 @Composable
-private fun ResumoCompeticaoCard(resumo: ResumoCompeticao) {
+private fun ResumoCompeticaoCard(resumo: ResumoCompeticao, jogos: List<Jogo>) {
     val coresStatus = LocalStatusColors.current
+    val porFuncao = jogos.contarPorFuncao()
     Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text("Resumo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             LinhaResumo("Jogos", resumo.totalJogos.toString())
+            porFuncao.forEach { (funcao, quantidade) ->
+                LinhaResumo("  • $funcao", quantidade.toString(), MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            LinhaResumo("A receber", resumo.jogosPendentes.toString(), coresStatus.aReceber)
             LinhaResumo("Recebidos", resumo.jogosRecebidos.toString(), coresStatus.recebido)
-            LinhaResumo("Pendentes", resumo.jogosPendentes.toString(), coresStatus.aReceber)
             androidx.compose.material3.Divider(modifier = Modifier.padding(vertical = 10.dp))
             LinhaResumo("Valor total", CurrencyUtils.formatar(resumo.valorTotalCentavos))
             LinhaResumo("Recebido", CurrencyUtils.formatar(resumo.valorRecebidoCentavos), coresStatus.recebido)
