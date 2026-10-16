@@ -54,6 +54,12 @@ object Rotas {
      * a partir dos dados atuais. */
     const val COMPETICOES_ENCERRADAS_PENDENTES = "competicoes_encerradas_pendentes"
 
+    /** Lista "COMPETIÇÕES EM ABERTO A RECEBER" (VERSÃO 1.4, seção 1). */
+    const val COMPETICOES_EM_ABERTO_PENDENTES = "competicoes_em_aberto_pendentes"
+
+    /** Tela "HISTÓRICO DE VALORES RECEBIDOS" (VERSÃO 1.4, seção 2). */
+    const val HISTORICO_RECEBIMENTOS = "historico_recebimentos"
+
     /** id = 0 -> cadastro ultrarrápido de um jogo novo. */
     fun jogoFormNovo(): String = "$JOGO_FORM_BASE?$ARG_JOGO_ID=0&$ARG_DUPLICADO=false&$ARG_COMPETICAO_PRESELECIONADA=0"
 

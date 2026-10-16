@@ -32,6 +32,8 @@ import com.meusjogos.arbitragem.ui.competicao.CompeticaoDetailScreen
 import com.meusjogos.arbitragem.ui.competicao.CompeticaoDetailViewModel
 import com.meusjogos.arbitragem.ui.competicao.CompeticaoReciboScreen
 import com.meusjogos.arbitragem.ui.competicao.CompeticaoReciboViewModel
+import com.meusjogos.arbitragem.ui.competicao.CompeticoesEmAbertoPendentesScreen
+import com.meusjogos.arbitragem.ui.competicao.CompeticoesEmAbertoPendentesViewModel
 import com.meusjogos.arbitragem.ui.competicao.CompeticoesEncerradasPendentesScreen
 import com.meusjogos.arbitragem.ui.competicao.CompeticoesEncerradasPendentesViewModel
 import com.meusjogos.arbitragem.ui.configuracoes.ConfiguracoesScreen
@@ -44,6 +46,8 @@ import com.meusjogos.arbitragem.ui.jogoform.JogoFormScreen
 import com.meusjogos.arbitragem.ui.jogoform.JogoFormViewModel
 import com.meusjogos.arbitragem.ui.jogos.JogosListScreen
 import com.meusjogos.arbitragem.ui.jogos.JogosListViewModel
+import com.meusjogos.arbitragem.ui.recebimento.HistoricoRecebimentosScreen
+import com.meusjogos.arbitragem.ui.recebimento.HistoricoRecebimentosViewModel
 import com.meusjogos.arbitragem.ui.recebimento.RecebimentoScreen
 import com.meusjogos.arbitragem.ui.recebimento.RecebimentoViewModel
 import com.meusjogos.arbitragem.ui.recibo.GerarReciboScreen
@@ -123,7 +127,9 @@ fun MeusJogosNavGraph(
                 DashboardScreen(
                     viewModel = viewModel,
                     contentPadding = paddingInterno,
+                    onCompeticoesEmAbertoPendentesClick = { navController.navigate(Rotas.COMPETICOES_EM_ABERTO_PENDENTES) },
                     onCompeticoesEncerradasPendentesClick = { navController.navigate(Rotas.COMPETICOES_ENCERRADAS_PENDENTES) },
+                    onValoresRecebidosClick = { navController.navigate(Rotas.HISTORICO_RECEBIMENTOS) },
                 )
             }
 
@@ -268,6 +274,28 @@ fun MeusJogosNavGraph(
                     viewModel = viewModel,
                     onVoltar = { navController.popBackStack() },
                     onVerCompeticao = { competicaoId -> navController.navigate(Rotas.competicaoDetail(competicaoId)) },
+                )
+            }
+
+            composable(Rotas.COMPETICOES_EM_ABERTO_PENDENTES) {
+                val viewModel: CompeticoesEmAbertoPendentesViewModel = viewModel(
+                    factory = ViewModelFactory { CompeticoesEmAbertoPendentesViewModel(repository, competicaoRepository) },
+                )
+                CompeticoesEmAbertoPendentesScreen(
+                    viewModel = viewModel,
+                    onVoltar = { navController.popBackStack() },
+                    onVerCompeticao = { competicaoId -> navController.navigate(Rotas.competicaoDetail(competicaoId)) },
+                )
+            }
+
+            composable(Rotas.HISTORICO_RECEBIMENTOS) {
+                val viewModel: HistoricoRecebimentosViewModel = viewModel(
+                    factory = ViewModelFactory { HistoricoRecebimentosViewModel(repository) },
+                )
+                HistoricoRecebimentosScreen(
+                    viewModel = viewModel,
+                    onVoltar = { navController.popBackStack() },
+                    onJogoClick = { jogoId -> navController.navigate(Rotas.jogoDetail(jogoId)) },
                 )
             }
         }

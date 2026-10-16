@@ -2,7 +2,9 @@ package com.meusjogos.arbitragem.core
 
 import com.meusjogos.arbitragem.core.logic.agruparCompeticoesEquivalentes
 import com.meusjogos.arbitragem.core.logic.chaveNormalizadaCompeticao
+import com.meusjogos.arbitragem.core.logic.comRecebimentos
 import com.meusjogos.arbitragem.core.logic.contarPorCompeticaoComStatus
+import com.meusjogos.arbitragem.core.logic.emAndamentoComPendencia
 import com.meusjogos.arbitragem.core.logic.encerrarCompeticao
 import com.meusjogos.arbitragem.core.logic.encerradasComPendencia
 import com.meusjogos.arbitragem.core.logic.encontrarEquivalente
@@ -219,6 +221,50 @@ class CompeticaoLogicaTest {
         val jogoRecebido = marcarComoRecebido(jogoPendente, LocalDate.of(2026, 9, 2))
         val depoisDoRecebimento = listOf(competicao).encerradasComPendencia(listOf(jogoRecebido))
         assertTrue(depoisDoRecebimento.isEmpty())
+    }
+
+    @Test
+    fun `emAndamentoComPendencia inclui so em andamento com saldo pendente - secao 1 da V1_4`() {
+        val emAndamentoPendente = Competicao(id = 1L, nome = "Copa A", status = StatusCompeticao.EM_ANDAMENTO)
+        val emAndamentoQuitada = Competicao(id = 2L, nome = "Copa B", status = StatusCompeticao.EM_ANDAMENTO)
+        val encerradaComPendencia = Competicao(id = 3L, nome = "Copa C", status = StatusCompeticao.ENCERRADA)
+
+        val jogos = listOf(
+            jogoDaCompeticao(competicaoId = 1L, valor = 20_000, recebido = false),
+            jogoDaCompeticao(competicaoId = 2L, valor = 15_000, recebido = true),
+            jogoDaCompeticao(competicaoId = 3L, valor = 30_000, recebido = false),
+        )
+        val competicoes = listOf(emAndamentoPendente, emAndamentoQuitada, encerradaComPendencia)
+
+        val pendentes = competicoes.emAndamentoComPendencia(jogos)
+
+        assertEquals(1, pendentes.size) // nunca a quitada (2), nunca a encerrada (3)
+        assertEquals(1L, pendentes.first().competicao.id)
+        assertEquals(20_000L, pendentes.first().resumo.valorPendenteCentavos)
+    }
+
+    @Test
+    fun `comRecebimentos inclui qualquer competicao com recebimento, mesmo com saldo pendente - secao 2 7 da V1_4`() {
+        val emAndamentoParcial = Competicao(id = 1L, nome = "Copa A", status = StatusCompeticao.EM_ANDAMENTO)
+        val encerradaQuitada = Competicao(id = 2L, nome = "Copa B", status = StatusCompeticao.ENCERRADA)
+        val semRecebimento = Competicao(id = 3L, nome = "Copa C", status = StatusCompeticao.EM_ANDAMENTO)
+
+        val jogos = listOf(
+            jogoDaCompeticao(competicaoId = 1L, valor = 10_000, recebido = true),
+            jogoDaCompeticao(competicaoId = 1L, valor = 10_000, recebido = false), // ainda tem pendência
+            jogoDaCompeticao(competicaoId = 2L, valor = 15_000, recebido = true),
+            jogoDaCompeticao(competicaoId = 3L, valor = 9_000, recebido = false),
+        )
+        val competicoes = listOf(emAndamentoParcial, encerradaQuitada, semRecebimento)
+
+        val comRecebimento = competicoes.comRecebimentos(jogos)
+
+        assertEquals(2, comRecebimento.size) // 1 e 2 — nunca a 3 (nenhum recebimento)
+        val parcial = comRecebimento.first { it.competicao.id == 1L }
+        assertEquals(10_000L, parcial.resumo.valorRecebidoCentavos)
+        assertEquals(10_000L, parcial.resumo.valorPendenteCentavos) // aparece aqui E teria pendência em outro módulo
+        val quitada = comRecebimento.first { it.competicao.id == 2L }
+        assertEquals(0L, quitada.resumo.valorPendenteCentavos)
     }
 
     private fun jogoDaCompeticao(competicaoId: Long?, valor: Long, recebido: Boolean = false, nome: String? = "Competição"): Jogo {

@@ -27,7 +27,9 @@ fun FiltroPeriodo.paraIntervalo(hoje: LocalDate = LocalDate.now()): Pair<LocalDa
     is FiltroPeriodo.Personalizado -> inicio to fim
 }
 
-private fun Jogo.correspondeA(query: String): Boolean {
+/** Visibilidade `internal` (não `private`) para ser reaproveitada também pelo histórico de
+ * recebimentos (VERSÃO 1.4, seção 5) — mesma lógica de pesquisa, outro arquivo do mesmo módulo. */
+internal fun Jogo.correspondeA(query: String): Boolean {
     if (query.isBlank()) return true
     val termo = query.trim()
     val campos = listOf(

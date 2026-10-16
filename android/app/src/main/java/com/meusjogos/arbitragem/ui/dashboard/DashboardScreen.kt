@@ -3,16 +3,13 @@ package com.meusjogos.arbitragem.ui.dashboard
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -21,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -29,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meusjogos.arbitragem.core.util.CurrencyUtils
+import com.meusjogos.arbitragem.ui.components.ModuloFinanceiroCard
 import com.meusjogos.arbitragem.ui.components.ProportionBar
 import com.meusjogos.arbitragem.ui.components.StatCard
 import com.meusjogos.arbitragem.ui.theme.CoralVibrante
@@ -37,7 +34,9 @@ import com.meusjogos.arbitragem.ui.theme.LocalStatusColors
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
+    onCompeticoesEmAbertoPendentesClick: () -> Unit,
     onCompeticoesEncerradasPendentesClick: () -> Unit,
+    onValoresRecebidosClick: () -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
 ) {
@@ -101,10 +100,58 @@ fun DashboardScreen(
         }
 
         item {
-            CompeticoesEncerradasPendentesCard(
-                valorPendenteCentavos = estado.valorPendenteCompeticoesEncerradasCentavos,
-                quantidade = estado.quantidadeCompeticoesEncerradasPendentes,
+            ModuloFinanceiroCard(
+                titulo = "COMPETIÇÕES EM ABERTO — VALORES A RECEBER",
+                icone = "📂",
+                valorCentavos = estado.valorPendenteCompeticoesAbertasCentavos,
+                linhas = listOf(
+                    if (estado.quantidadeCompeticoesAbertasPendentes == 0) {
+                        "Nenhuma competição em andamento com valores pendentes"
+                    } else {
+                        "${estado.quantidadeCompeticoesAbertasPendentes} " +
+                            "${if (estado.quantidadeCompeticoesAbertasPendentes == 1) "competição" else "competições"} com valores pendentes"
+                    },
+                    "${estado.quantidadeJogosPendentesCompeticoesAbertas} " +
+                        "${if (estado.quantidadeJogosPendentesCompeticoesAbertas == 1) "jogo pendente" else "jogos pendentes"}",
+                ),
+                corFundo = coresStatus.aReceberContainer,
+                corTexto = coresStatus.aReceber,
+                onClick = onCompeticoesEmAbertoPendentesClick,
+            )
+        }
+
+        item {
+            ModuloFinanceiroCard(
+                titulo = "COMPETIÇÕES ENCERRADAS — VALORES EM ABERTO",
+                icone = "🔒",
+                valorCentavos = estado.valorPendenteCompeticoesEncerradasCentavos,
+                linhas = listOf(
+                    if (estado.quantidadeCompeticoesEncerradasPendentes == 0) {
+                        "Nenhuma competição encerrada com valores pendentes"
+                    } else {
+                        "${estado.quantidadeCompeticoesEncerradasPendentes} " +
+                            "${if (estado.quantidadeCompeticoesEncerradasPendentes == 1) "competição" else "competições"} com valores pendentes"
+                    },
+                ),
+                corFundo = coresStatus.aReceberContainer,
+                corTexto = coresStatus.aReceber,
                 onClick = onCompeticoesEncerradasPendentesClick,
+            )
+        }
+
+        item {
+            ModuloFinanceiroCard(
+                titulo = "VALORES RECEBIDOS",
+                icone = "✅",
+                valorCentavos = estado.totalRecebidoCentavos,
+                linhas = listOf(
+                    "${estado.quantidadeCompeticoesComRecebimentos} " +
+                        "${if (estado.quantidadeCompeticoesComRecebimentos == 1) "competição" else "competições"} com recebimentos",
+                    "${estado.jogosRecebidos} ${if (estado.jogosRecebidos == 1) "jogo" else "jogos"} com pagamentos registrados",
+                ),
+                corFundo = coresStatus.recebidoContainer,
+                corTexto = coresStatus.recebido,
+                onClick = onValoresRecebidosClick,
             )
         }
 
@@ -230,50 +277,5 @@ private fun LinhaResumo(rotulo: String, valor: String, cor: Color, modifier: Mod
     ) {
         Text(text = rotulo, style = MaterialTheme.typography.bodyMedium)
         Text(text = valor, style = MaterialTheme.typography.bodyLarge, color = cor, fontWeight = FontWeight.Bold)
-    }
-}
-
-/**
- * Card "COMPETIÇÕES ENCERRADAS — VALORES EM ABERTO" (VERSÃO 1.3, seção 3) — soma só o saldo
- * pendente das competições já ENCERRADAS (independente do "A RECEBER" geral, que também inclui
- * competições em andamento). Toque abre a lista "Competições encerradas a receber".
- */
-@Composable
-private fun CompeticoesEncerradasPendentesCard(valorPendenteCentavos: Long, quantidade: Int, onClick: () -> Unit) {
-    val coresStatus = LocalStatusColors.current
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-        colors = CardDefaults.cardColors(containerColor = coresStatus.aReceberContainer),
-    ) {
-        Column(modifier = Modifier.padding(18.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("🔒", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "COMPETIÇÕES ENCERRADAS — VALORES EM ABERTO",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = coresStatus.aReceber,
-                )
-            }
-            Text(
-                text = CurrencyUtils.formatar(valorPendenteCentavos),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = coresStatus.aReceber,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-            Text(
-                text = if (quantidade == 0) {
-                    "Nenhuma competição encerrada com valores pendentes"
-                } else {
-                    "$quantidade ${if (quantidade == 1) "competição" else "competições"} com valores pendentes"
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = coresStatus.aReceber,
-                modifier = Modifier.padding(top = 4.dp),
-            )
-        }
     }
 }

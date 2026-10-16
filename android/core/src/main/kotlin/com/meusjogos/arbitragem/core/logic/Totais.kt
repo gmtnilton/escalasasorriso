@@ -30,6 +30,10 @@ fun List<Jogo>.quantidadeRecebidos(): Int = count { it.statusPagamento == Status
 
 fun List<Jogo>.quantidadeAReceber(): Int = count { it.statusPagamento == StatusPagamento.A_RECEBER }
 
+/** Jogos já recebidos — cada um representa exatamente um pagamento neste app (um recebimento por
+ * jogo). Base do histórico de valores recebidos (VERSÃO 1.4). */
+fun List<Jogo>.recebidos(): List<Jogo> = filter { it.recebido }
+
 fun List<Jogo>.paraResumoPeriodo(): ResumoPeriodo = ResumoPeriodo(
     totalJogos = size,
     totalRecebidoCentavos = totalRecebidoCentavos(),

@@ -107,6 +107,29 @@ fun List<Competicao>.encerradasComPendencia(jogos: List<Jogo>): List<CompeticaoC
         .filter { it.resumo.valorPendenteCentavos > 0 }
         .sortedByDescending { it.resumo.valorPendenteCentavos }
 
+/**
+ * Competições EM ANDAMENTO que já têm saldo pendente (VERSÃO 1.4, seção 1) — espelha
+ * [encerradasComPendencia] para o lado "ainda abertas": some desta lista tão logo a competição
+ * seja encerrada (passa a aparecer em [encerradasComPendencia], se ainda houver pendência) ou
+ * tão logo o saldo chegue a zero.
+ */
+fun List<Competicao>.emAndamentoComPendencia(jogos: List<Jogo>): List<CompeticaoComResumo> =
+    filterNot { it.encerrada }
+        .map { competicao -> CompeticaoComResumo(competicao, jogos.resumoDaCompeticao(competicao.id)) }
+        .filter { it.resumo.valorPendenteCentavos > 0 }
+        .sortedByDescending { it.resumo.valorPendenteCentavos }
+
+/**
+ * Competições com QUALQUER recebimento já registrado (VERSÃO 1.4, seção 2) — independente do
+ * status (em andamento ou encerrada) e mesmo que ainda reste saldo pendente: uma competição pode
+ * aparecer aqui E em um dos módulos de pendência ao mesmo tempo, o que é esperado (REGRA 7 da
+ * seção 7). Nunca duplica um pagamento — reaproveita [resumoDaCompeticao] como fonte única.
+ */
+fun List<Competicao>.comRecebimentos(jogos: List<Jogo>): List<CompeticaoComResumo> =
+    map { competicao -> CompeticaoComResumo(competicao, jogos.resumoDaCompeticao(competicao.id)) }
+        .filter { it.resumo.jogosRecebidos > 0 }
+        .sortedByDescending { it.resumo.valorRecebidoCentavos }
+
 // ---------------------------------------------------------------------
 // Agrupamento por texto bruto (usado na migração de dados existentes e na
 // unificação ao editar) — generaliza o mesmo padrão de
