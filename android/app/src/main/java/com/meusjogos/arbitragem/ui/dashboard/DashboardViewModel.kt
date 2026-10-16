@@ -1,0 +1,84 @@
+package com.meusjogos.arbitragem.ui.dashboard
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.meusjogos.arbitragem.core.logic.comRecebimentos
+import com.meusjogos.arbitragem.core.logic.emAndamentoComPendencia
+import com.meusjogos.arbitragem.core.logic.encerradasComPendencia
+import com.meusjogos.arbitragem.core.logic.quantidadeAReceber
+import com.meusjogos.arbitragem.core.logic.quantidadeRecebidos
+import com.meusjogos.arbitragem.core.logic.resumoDoMes
+import com.meusjogos.arbitragem.core.logic.totalAReceberCentavos
+import com.meusjogos.arbitragem.core.logic.totalGeralCentavos
+import com.meusjogos.arbitragem.core.logic.totalRecebidoCentavos
+import com.meusjogos.arbitragem.core.model.ResumoPeriodo
+import com.meusjogos.arbitragem.core.util.DateUtils
+import com.meusjogos.arbitragem.data.repository.CompeticaoRepository
+import com.meusjogos.arbitragem.data.repository.JogoRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import java.time.LocalDate
+
+data class DashboardUiState(
+    val carregando: Boolean = true,
+    val totalAReceberCentavos: Long = 0L,
+    val totalRecebidoCentavos: Long = 0L,
+    val totalGeralCentavos: Long = 0L,
+    val totalJogos: Int = 0,
+    val jogosRecebidos: Int = 0,
+    val jogosAReceber: Int = 0,
+    /** REGRA nova — quantidade de competições 🟢 em andamento e 🔴 encerradas, exibidas no Início
+     * logo após a quantidade total de jogos. */
+    val competicoesAbertas: Int = 0,
+    val competicoesEncerradas: Int = 0,
+    /** VERSÃO 1.3, seções 3/6/7 — soma dos saldos pendentes SÓ das competições já ENCERRADAS
+     * (independente do total geral a receber, que inclui também as em andamento) e quantas são. */
+    val valorPendenteCompeticoesEncerradasCentavos: Long = 0L,
+    val quantidadeCompeticoesEncerradasPendentes: Int = 0,
+    /** VERSÃO 1.4, seção 1 — espelha o módulo acima, mas para as competições ainda EM ANDAMENTO
+     * com saldo pendente: valor, quantidade de competições e quantidade de jogos pendentes nelas. */
+    val valorPendenteCompeticoesAbertasCentavos: Long = 0L,
+    val quantidadeCompeticoesAbertasPendentes: Int = 0,
+    val quantidadeJogosPendentesCompeticoesAbertas: Int = 0,
+    /** VERSÃO 1.4, seção 2 — quantidade de competições com QUALQUER recebimento já registrado
+     * (o valor/quantidade de jogos recebidos já existem acima: totalRecebidoCentavos/jogosRecebidos). */
+    val quantidadeCompeticoesComRecebimentos: Int = 0,
+    val resumoPeriodoAtual: ResumoPeriodo = ResumoPeriodo(0, 0, 0),
+    val rotuloPeriodoAtual: String = "",
+)
+
+class DashboardViewModel(
+    repository: JogoRepository,
+    competicaoRepository: CompeticaoRepository,
+) : ViewModel() {
+
+    val uiState: StateFlow<DashboardUiState> = combine(
+        repository.observarJogos(),
+        competicaoRepository.observarCompeticoes(),
+    ) { jogos, competicoes ->
+        val hoje = LocalDate.now()
+        val encerradasPendentes = competicoes.encerradasComPendencia(jogos)
+        val abertasPendentes = competicoes.emAndamentoComPendencia(jogos)
+        DashboardUiState(
+            carregando = false,
+            totalAReceberCentavos = jogos.totalAReceberCentavos(),
+            totalRecebidoCentavos = jogos.totalRecebidoCentavos(),
+            totalGeralCentavos = jogos.totalGeralCentavos(),
+            totalJogos = jogos.size,
+            jogosRecebidos = jogos.quantidadeRecebidos(),
+            jogosAReceber = jogos.quantidadeAReceber(),
+            competicoesAbertas = competicoes.count { !it.encerrada },
+            competicoesEncerradas = competicoes.count { it.encerrada },
+            valorPendenteCompeticoesEncerradasCentavos = encerradasPendentes.sumOf { it.resumo.valorPendenteCentavos },
+            quantidadeCompeticoesEncerradasPendentes = encerradasPendentes.size,
+            valorPendenteCompeticoesAbertasCentavos = abertasPendentes.sumOf { it.resumo.valorPendenteCentavos },
+            quantidadeCompeticoesAbertasPendentes = abertasPendentes.size,
+            quantidadeJogosPendentesCompeticoesAbertas = abertasPendentes.sumOf { it.resumo.jogosPendentes },
+            quantidadeCompeticoesComRecebimentos = competicoes.comRecebimentos(jogos).size,
+            resumoPeriodoAtual = jogos.resumoDoMes(hoje.year, hoje.monthValue),
+            rotuloPeriodoAtual = DateUtils.nomeMesAno(hoje.year, hoje.monthValue),
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardUiState())
+}
